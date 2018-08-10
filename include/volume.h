@@ -186,8 +186,8 @@ NT volume(T &P,
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var);
-        //std::pair<NT,NT> res_round = round_polytope(P,var);
+        //std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var);
+        std::pair<NT,NT> res_round = round_polytope(P,var);
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
@@ -357,7 +357,8 @@ NT volume_gaussian_annealing(T &P,
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var2);
+        //std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var2);
+        std::pair<NT,NT> res_round = round_polytope(P, var2);
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         round_value=res_round.first;

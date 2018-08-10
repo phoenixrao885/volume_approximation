@@ -50,6 +50,14 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
         std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
 
+    std::pair<NT,NT> res_round = round_polytope(P, var);
+    NT round_value = res_round.first;
+    std::pair<Point,NT> CheBall;
+    CheBall = P.chebyshev_center();
+    std::cout<<"\nround value is: "<<round_value<<std::endl;
+
+
+    /*
     std::pair<Point,NT> CheBall;// = solveLP(P.get_matrix(), P.dimension());
     Point c;//=CheBall.first;
     NT radius;//=CheBall.second;
@@ -81,7 +89,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
     CheBall = P.chebyshev_center();
     //c=CheBall.first;
-    //radius=CheBall.second;
+    //radius=CheBall.second;*/
 
     NT vol = 0;
     unsigned int const num_of_exp = 10;

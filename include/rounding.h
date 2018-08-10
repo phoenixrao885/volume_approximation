@@ -240,13 +240,14 @@ template <class T1>
 std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P, vars &var) {
 
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
-    bool print=var.verbose;
+    bool print=var.verbose, get_points = true;
     std::pair<Point, NT> CheBall = P.chebyshev_center();
     Point c = CheBall.first;
-    NT radius = CheBall.second;
+    NT radius = CheBall.second, ratio;
     std::list<Point> randPoints; //ds for storing rand points
+    int num_of_samples;// = 10*n;//this is the number of sample points will used to compute min_ellipoid
     if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
-        // If P is not a V-Polytope or number_of_vertices>20*domension
+        get_points = false; // P is H polytope or V-polytope with num_of_vertices>20*dimension
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         Point p = get_point_on_Dsphere(n, radius);
@@ -254,17 +255,32 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P,
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
         // 3. Sample points from P
-        int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
         randPoints.clear();
-        rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
+        rand_point_generator(P, p, 100*n, walk_len, randPoints, var); // sample >10*n in order to estimate ratio between radius of largest inscribed ball and smallest enclosing
 
+        // estimate ratio between radius of largest inscribed ball and smallest enclosing for the stopping criterion
+        NT current_dist, max_dist;
+        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+            current_dist=(*pit-c).squared_length();
+            if(current_dist>max_dist){
+                max_dist=current_dist;
+            }
+        }
+        max_dist=std::sqrt(max_dist);
+        ratio=radius/max_dist;
+
+    }
+    if (get_points) {
+        num_of_samples = randPoints.size(); // P is V-polytope
+    } else {
+        num_of_samples = 10*n; // use only 10*n for the minimum volume enclosing ellipsoid
     }
 
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
-    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+    boost::numeric::ublas::matrix<double> Ap(n,num_of_samples);
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;
-    for ( ; rpit!=randPoints.end(); rpit++, j++) {
+    for ( j=0; j<num_of_samples; rpit++, j++) {
         qit = (*rpit).iter_begin(); i=0;
         for ( ; qit!=(*rpit).iter_end(); qit++, i++){
             Ap(i,j)=double(*qit);
@@ -286,20 +302,22 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P,
         }
     }
 
-
-    //Find the smallest and the largest axes of the elliposoid
-    Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
-    NT rel = std::real(eigensolver.eigenvalues()[0]);
-    NT Rel = std::real(eigensolver.eigenvalues()[0]);
-    for(int i=1; i<n; i++){
-        if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
-        if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
+    if (get_points) { // V-polytope. Use the ratio between minimum and maximum axe of the enclosing ellipsoid as stopping criterion
+        //Find the smallest and the largest axes of the elliposoid
+        Eigen::EigenSolver <Eigen::MatrixXd> eigensolver(E);
+        NT rel = std::real(eigensolver.eigenvalues()[0]);
+        NT Rel = std::real(eigensolver.eigenvalues()[0]);
+        for (int i = 1; i < n; i++) {
+            if (std::real(eigensolver.eigenvalues()[i]) < rel) rel = std::real(eigensolver.eigenvalues()[i]);
+            if (std::real(eigensolver.eigenvalues()[i]) > Rel) Rel = std::real(eigensolver.eigenvalues()[i]);
+        }
+        ratio = rel/Rel;
     }
 
     std::pair<Eigen::MatrixXd, Eigen::VectorXd> Ell;
     Ell.first = E; Ell.second = e;
 
-    return std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> (Ell, rel/Rel);
+    return std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> (Ell, ratio);
 }
 
 
@@ -322,16 +340,17 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> is_last_rounding(T1 
     P3.shift(e);
 
     Eigen::MatrixXd L_1 = L.inverse();
+    // apply linear transformation in test polytope P3 in order to check the new ratio
     P3.linear_transformIt(L_1.transpose());
 
     std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> res = comp_lintrans(P3, var);
 
     //std::cout<<"now = "<<ratio<<" next = "<<res.second<<std::endl;
 
-    if (res.second > ratio) {
+    if (res.second > ratio) {  // if the ratio is largest then accept linear transformation
         P2 = P3;
         round_value *= L_1.determinant();
-    } else {
+    } else { // if the ratio is smaller then stop rounding
         comp_next = false;
         return std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> (Ell,ratio);
     }
@@ -352,6 +371,7 @@ std::pair<NT,NT> round_polytope(T1 &P, vars &var) {
 
     while (comp_next) {
         //std::cout<<"round_value = "<<round_value<<std::endl;
+        // comp_next is false when ratio gets smaller for the first time
         res = is_last_rounding(P2, res.first, res.second, round_value, comp_next, var);
         //std::cout<<"round_value = "<<round_value<<"\n"<<std::endl;
     }
