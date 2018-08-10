@@ -187,6 +187,7 @@ NT volume(T &P,
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var);
+        //std::pair<NT,NT> res_round = round_polytope(P,var);
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;

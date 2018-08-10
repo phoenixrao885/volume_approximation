@@ -49,6 +49,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
         rot_val = rotating(P);
         std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
+
     std::pair<Point,NT> CheBall;// = solveLP(P.get_matrix(), P.dimension());
     Point c;//=CheBall.first;
     NT radius;//=CheBall.second;
