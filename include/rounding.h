@@ -237,7 +237,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P, std::pair<Point,FT> CheBall, va
 
 
 template <class T1>
-std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P, vars &var) {
+std::pair< std::pair<MT, VT>, NT> comp_lintrans(T1 &P, vars &var) {
 
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose, get_points = true;
@@ -291,8 +291,8 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P,
     size_t w=1000;
     NT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-    Eigen::MatrixXd E(n,n);
-    Eigen::VectorXd e(n);
+    MT E(n,n);
+    VT e(n);
 
     //Get ellipsoid matrix and center as Eigen objects
     for(int i=0; i<n; i++){
@@ -304,7 +304,7 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P,
 
     if (get_points) { // V-polytope. Use the ratio between minimum and maximum axe of the enclosing ellipsoid as stopping criterion
         //Find the smallest and the largest axes of the elliposoid
-        Eigen::EigenSolver <Eigen::MatrixXd> eigensolver(E);
+        Eigen::EigenSolver <MT> eigensolver(E);
         NT rel = std::real(eigensolver.eigenvalues()[0]);
         NT Rel = std::real(eigensolver.eigenvalues()[0]);
         for (int i = 1; i < n; i++) {
@@ -314,36 +314,36 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> comp_lintrans(T1 &P,
         ratio = rel/Rel;
     }
 
-    std::pair<Eigen::MatrixXd, Eigen::VectorXd> Ell;
+    std::pair<MT, VT> Ell;
     Ell.first = E; Ell.second = e;
 
-    return std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> (Ell, ratio);
+    return std::pair< std::pair<MT, VT>, NT> (Ell, ratio);
 }
 
 
 template <class T1, typename FT>
-std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> is_last_rounding(T1 &P2,
-                                                                             std::pair<Eigen::MatrixXd, Eigen::VectorXd> Ell,
+std::pair< std::pair<MT, VT>, FT> is_last_rounding(T1 &P2,
+                                                                             std::pair<MT, VT> Ell,
                                                                              FT ratio,
                                                                              FT &round_value,
                                                                              bool &comp_next,
                                                                              vars &var) {
 
     T1 P3(P2);
-    Eigen::MatrixXd E = Ell.first;
-    Eigen::VectorXd e = Ell.second;
+    MT E = Ell.first;
+    VT e = Ell.second;
 
-    Eigen::LLT<Eigen::MatrixXd> lltOfA(E); // compute the Cholesky decomposition of E
-    Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+    Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+    MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
 
     //Shift polytope in order to contain the origin (center of the ellipsoid)
     P3.shift(e);
 
-    Eigen::MatrixXd L_1 = L.inverse();
+    MT L_1 = L.inverse();
     // apply linear transformation in test polytope P3 in order to check the new ratio
     P3.linear_transformIt(L_1.transpose());
 
-    std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> res = comp_lintrans(P3, var);
+    std::pair< std::pair<MT, VT>, FT> res = comp_lintrans(P3, var);
 
     //std::cout<<"now = "<<ratio<<" next = "<<res.second<<std::endl;
 
@@ -352,7 +352,7 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> is_last_rounding(T1 
         round_value *= L_1.determinant();
     } else { // if the ratio is smaller then stop rounding
         comp_next = false;
-        return std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> (Ell,ratio);
+        return std::pair< std::pair<MT, VT>, FT> (Ell,ratio);
     }
 
     return res;
@@ -363,7 +363,7 @@ std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, FT> is_last_rounding(T1 
 template <class T1>
 std::pair<NT,NT> round_polytope(T1 &P, vars &var) {
 
-    std::pair< std::pair<Eigen::MatrixXd, Eigen::VectorXd>, NT> res;
+    std::pair< std::pair<MT, VT>, NT> res;
     res = comp_lintrans(P, var);
     bool comp_next = true;
     NT round_value = NT(1.0);
