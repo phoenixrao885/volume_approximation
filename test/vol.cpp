@@ -403,7 +403,8 @@ int main(const int argc, const char** argv)
           if(!Vpoly) {
               vol = volume(P, var, var, CheBall);
           }else{
-              vol = volume(VP, var, var, CheBall);
+              //vol = volume(VP, var, var, CheBall);
+              vol = Vpoly_volume(VP, var);
           }
       }
 

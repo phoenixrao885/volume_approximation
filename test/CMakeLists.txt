@@ -35,6 +35,7 @@ else ()
   include_directories (BEFORE ../external/LPsolve_src)
   include_directories (BEFORE ../external/boost)
   include_directories (BEFORE ../external/number_types)
+  include_directories (BEFORE ../external/miniball)
   include_directories (BEFORE ../include)
 
 

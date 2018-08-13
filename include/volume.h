@@ -151,8 +151,10 @@ public:
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "annealing/gaussian_annealing.h"
+#include "compute_miniball.h"
 #include "misc.h"
 #include "linear_extensions.h"
+#include "Vpoly_volume.h"
 
 
 template <class T>
