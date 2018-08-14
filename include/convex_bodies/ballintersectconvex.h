@@ -101,8 +101,8 @@ public:
     T first() { return _P; }
     Ball second() { return _B; }
     
-    int is_in(Point p){
-        if(_B.is_in(p)==-1)
+    int is_in(Point p) {
+        if (_B.is_in(p) == -1)
             return _P.is_in(p);
         return 0;
     }
@@ -160,6 +160,84 @@ private:
     Ball _B;
 };
 
+
+// Convex body defined as an intersection of balls
+template <typename FT>
+class IntersectionOfBalls {
+private:
+    std::vector<Ball> balls;
+    int _d;
+public:
+    IntersectionOfBalls (int dim, std::vector<Ball> vecballs) : _d(dim), balls(vecballs) {};
+
+    int dimension() {
+        return _d;
+    }
+
+    int num_of_hyperplanes() {
+        return 0;
+    }
+
+    void addBall (Ball B) {
+        balls.push_back(B);
+    }
+
+    int is_in(Point p) {
+        typename std::vector<Ball>::iterator itB = balls.begin();
+        for ( ; itB!=balls.end(); itB++) {
+            if ((*itB).is_in(p)==0) {
+                return 0;
+            }
+        }
+        return -1;
+    }
+
+    std::pair<FT,FT> line_intersect(Point r,
+                                    Point v) {
+        FT min_plus = FT(maxNT), max_minus = FT(minNT);
+        std::pair <FT, FT> ballpair;
+        typename std::vector<Ball>::iterator itB = balls.begin();
+        for ( ; itB!=balls.end(); itB++) {
+            std::pair <FT, FT> ballpair = (*itB).line_intersect(r, v);
+            if (ballpair.first < min_plus) min_plus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.first;
+        }
+        return std::pair<FT, FT> (min_plus, max_minus);
+    }
+
+    //First coordinate ray shooting intersecting convex body
+    std::pair<FT,FT> line_intersect_coord(Point &r,
+                                          int rand_coord,
+                                          std::vector<FT> &lamdas) {
+        FT min_plus = FT(maxNT), max_minus = FT(minNT);
+        std::pair <FT, FT> ballpair;
+        typename std::vector<Ball>::iterator itB = balls.begin();
+        for ( ; itB!=balls.end(); itB++) {
+            std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
+            if (ballpair.first < min_plus) min_plus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.first;
+        }
+        return std::pair<FT, FT> (min_plus, max_minus);
+    }
+
+    std::pair<FT,FT> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          int rand_coord,
+                                          int rand_coord_prev,
+                                          std::vector<FT> &lamdas) {
+        FT min_plus = FT(maxNT), max_minus = FT(minNT);
+        std::pair <FT, FT> ballpair;
+        typename std::vector<Ball>::iterator itB = balls.begin();
+        for ( ; itB!=balls.end(); itB++) {
+            std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
+            if (ballpair.first < min_plus) min_plus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.first;
+        }
+        return std::pair<FT, FT> (min_plus, max_minus);
+    }
+
+
+};
 
 
 template <class T1 , class T2>
