@@ -404,6 +404,7 @@ class VPolytope{
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
+    //VT eig_c; // help vector to copy point in it. used in is_in_ball() function
     int _d;  //dimension
 
 public:
@@ -723,6 +724,23 @@ public:
             }
             Point p(_d, temp.begin(), temp.end());
             randPoints.push_back(p);
+        }
+        return true;
+    }
+
+    bool is_in_ball(Point c, FT rad) {
+        VT eig_c(_d);
+        for (int i = 0; i < _d; ++i) {
+            eig_c(i) = c[i];
+        }
+        MT V2 = V.transpose().colwise() - eig_c;
+        V2 = V2.transpose();
+        int k = V.rows();
+
+        for (int i = 0; i < k; ++i) {
+            if (V2.row(i).norm() > rad) {
+                return false;
+            }
         }
         return true;
     }

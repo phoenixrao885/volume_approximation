@@ -178,7 +178,7 @@ public:
         return 0;
     }
 
-    void addBall (Ball B) {
+    void add_ball (Ball B) {
         balls.push_back(B);
     }
 

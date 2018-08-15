@@ -43,10 +43,10 @@ NT Vpoly_volume (T &P, vars var) {
 
     xc = Point(n);
 
-    std::vector<ball> S0;
-    S0.push_back(ball(c, res.second * res.second));
+    std::vector<Ball> S0;
+    S0.push_back(Ball(xc, res.second * res.second));
     // starting convex body is the minimum enclosing ball of the V-polytope
-    ConvSet.push_back(P.dimension(), InterBalls(S0));
+    ConvSet.push_back(InterBalls(P.dimension(), S0));
 
     vol = (std::pow(M_PI,n/2.0)*(res.second, n) )  / (tgamma(n/2.0+1));
 

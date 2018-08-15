@@ -34,7 +34,6 @@ typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
-typedef IntersectionOfBalls<NT> InterBalls;
 typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
@@ -155,6 +154,9 @@ public:
 #include "compute_miniball.h"
 #include "misc.h"
 #include "linear_extensions.h"
+
+typedef IntersectionOfBalls<NT> InterBalls;
+
 #include "Vpoly_volume.h"
 
 
