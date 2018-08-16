@@ -734,11 +734,12 @@ public:
             eig_c(i) = c[i];
         }
         MT V2 = V.transpose().colwise() - eig_c;
-        V2 = V2.transpose();
-        int k = V.rows();
+        MT V3 = V2.transpose();
+        int k = V3.rows();
+        //std::cout<<"V3 = "<<V3<<std::endl;
 
         for (int i = 0; i < k; ++i) {
-            if (V2.row(i).norm() > rad) {
+            if (V3.row(i).norm() > rad) {
                 return false;
             }
         }

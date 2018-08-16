@@ -21,11 +21,22 @@
 template <class T>
 NT Vpoly_volume (T &P, vars var) {
 
-    std::vector<InterBalls> ConvSet;
+    std::vector<Interballs> ConvSet;
+    std::vector<Ball> vecBalls;
+    P.print();
     int n = var.n;
     bool print = var.verbose;
     NT vol;
+    if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
+    NT round_value;
+    get_ball_schedule(P, ConvSet, vecBalls, 0.70, round_value, var);
+    if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
+    if (print) std::cout<<"round_value = "<<round_value<<std::endl;
 
+    NT rad = vecBalls[0].radius();
+    vol = (std::pow(M_PI,n/2.0)*(rad, n) )  / (tgamma(n/2.0+1));
+
+    /*
     if (print) std::cout<<"Computing minimum enclosing ball..\n";
     std::pair<Point, NT> res = compute_minball(P);
     if (print) std::cout<<"Computation of minimum enclosing ball completed!\n";
@@ -46,9 +57,9 @@ NT Vpoly_volume (T &P, vars var) {
     std::vector<Ball> S0;
     S0.push_back(Ball(xc, res.second * res.second));
     // starting convex body is the minimum enclosing ball of the V-polytope
-    ConvSet.push_back(InterBalls(P.dimension(), S0));
+    ConvSet.push_back(InterBalls(P.dimension(), S0));*/
 
-    vol = (std::pow(M_PI,n/2.0)*(res.second, n) )  / (tgamma(n/2.0+1));
+
 
     return vol;
 }

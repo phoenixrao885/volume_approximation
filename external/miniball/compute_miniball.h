@@ -28,22 +28,29 @@ std::pair<Point, NT> compute_minball(T &P) {
     PointVector S;
     std::vector<NT> coords(d);
     MT V = P.get_mat();
+    std::cout<<V<<std::endl;
 
     for (i=0; i<k; i++) {
         for (j=0; j<d; j++) {
             coords[j] = V(i, j);
+            //std::cout<<coords[j]<<" ";
         }
+        //std::cout<<"\n";
         S.push_back(Point_seb(d,coords.begin()));
     }
 
     // Compute the miniball by inserting each value
+    std::cout<<"S size = "<<S.size()<<std::endl;
     Miniball mb(d, S);
 
     NT rad = mb.radius();
 
     Miniball::Coordinate_iterator center_it = mb.center_begin();
-    for (j=0; j<d; ++j)
-        coords[j] =  center_it[j];
+    for (j=0; j<d; ++j) {
+        coords[j] = center_it[j];
+        std::cout<<coords[j]<<" ";
+    }
+    std::cout<<"\n[miniball] radius is = "<<rad<<std::endl;
 
     Point xc(d, coords.begin(), coords.end());
 

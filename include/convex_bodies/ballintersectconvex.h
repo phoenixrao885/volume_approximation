@@ -13,6 +13,8 @@
 // ball type
 struct Ball{
 public:
+    Ball() {}
+
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
     Point center(){
@@ -180,6 +182,10 @@ public:
 
     void add_ball (Ball B) {
         balls.push_back(B);
+    }
+
+    Ball get_ball (int const i) {
+        return balls[i];
     }
 
     int is_in(Point p) {

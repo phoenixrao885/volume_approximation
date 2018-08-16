@@ -176,7 +176,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
         int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
         randPoints.clear();
         rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-        FT current_dist, max_dist;
+        /*FT current_dist, max_dist;
         for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
@@ -184,7 +184,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
             }
         }
         max_dist=std::sqrt(max_dist);
-        R=max_dist/radius;
+        R=max_dist/radius;*/
     }
 
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid

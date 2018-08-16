@@ -155,8 +155,9 @@ public:
 #include "misc.h"
 #include "linear_extensions.h"
 
-typedef IntersectionOfBalls<NT> InterBalls;
+typedef IntersectionOfBalls<NT> Interballs;
 
+#include "annealing/ball_annealing.h"
 #include "Vpoly_volume.h"
 
 
