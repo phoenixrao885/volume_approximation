@@ -170,6 +170,9 @@ private:
     std::vector<Ball> balls;
     int _d;
 public:
+
+    IntersectionOfBalls (int dim) : _d(dim) {}
+
     IntersectionOfBalls (int dim, std::vector<Ball> vecballs) : _d(dim), balls(vecballs) {};
 
     int dimension() {
@@ -178,6 +181,10 @@ public:
 
     int num_of_hyperplanes() {
         return 0;
+    }
+
+    int num_of_balls(){
+        return balls.size();
     }
 
     void add_ball (Ball B) {
@@ -206,7 +213,7 @@ public:
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect(r, v);
             if (ballpair.first < min_plus) min_plus = ballpair.first;
-            if (ballpair.second > max_minus) max_minus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.second;
         }
         return std::pair<FT, FT> (min_plus, max_minus);
     }
@@ -217,11 +224,15 @@ public:
                                           std::vector<FT> &lamdas) {
         FT min_plus = FT(maxNT), max_minus = FT(minNT);
         std::pair <FT, FT> ballpair;
+        //std::cout<<"number of balls = "<<num_of_balls()<<std::endl;
+        //std::cout<<"rand_coord = "<<rand_coord<<std::endl;
+        //r.print();
+        //std::cout<<"point in convex body: "<<is_in(r)<<std::endl;
         typename std::vector<Ball>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
             if (ballpair.first < min_plus) min_plus = ballpair.first;
-            if (ballpair.second > max_minus) max_minus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.second;
         }
         return std::pair<FT, FT> (min_plus, max_minus);
     }
@@ -233,11 +244,17 @@ public:
                                           std::vector<FT> &lamdas) {
         FT min_plus = FT(maxNT), max_minus = FT(minNT);
         std::pair <FT, FT> ballpair;
+        //std::cout<<"number of balls = "<<num_of_balls()<<std::endl;
+        //std::cout<<"rand_coord = "<<rand_coord<<std::endl;
+        //r.print();
+        //std::cout<<"point in convex body: "<<is_in(r)<<std::endl;
+
         typename std::vector<Ball>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
+            //std::cout<<"CNV min_plus = "<<ballpair.first<<" CNV max_minus = "<<ballpair.second<<std::endl;
             if (ballpair.first < min_plus) min_plus = ballpair.first;
-            if (ballpair.second > max_minus) max_minus = ballpair.first;
+            if (ballpair.second > max_minus) max_minus = ballpair.second;
         }
         return std::pair<FT, FT> (min_plus, max_minus);
     }

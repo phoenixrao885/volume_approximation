@@ -29,9 +29,9 @@ NT Vpoly_volume (T &P, vars var) {
     NT vol;
     if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
     NT round_value;
-    get_ball_schedule(P, ConvSet, vecBalls, 0.70, round_value, var);
+    get_ball_schedule(P, ConvSet, vecBalls, 0.70, var);
     if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
-    if (print) std::cout<<"round_value = "<<round_value<<std::endl;
+    if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
 
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(rad, n) )  / (tgamma(n/2.0+1));

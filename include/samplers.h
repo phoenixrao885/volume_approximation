@@ -109,9 +109,13 @@ void rand_point_generator(T &P,
     }else if (var.coordinate) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
+        std::cout<<P.is_in(p)<<std::endl;
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+        std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
+        std::cout<<"rand_coord = "<<rand_coord<<" kapa = "<<kapa<<std::endl;
+        std::cout<<P.is_in(p)<<std::endl;
     } else
         hit_and_run(p, P, var, var);
 
@@ -204,7 +208,7 @@ void rand_point(T &P, Point &p, vars &var){
             rand_coord = uidist(rng);
             kapa = urdist(rng);
             std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-            std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
+            //std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
             p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
             //hit_and_run_coord_update(p, p, P, rand_coord, 0, kapa, lamdas, var, var);
         }
@@ -249,6 +253,7 @@ void hit_and_run_coord_update(Point &p,
                              vars &var,
                              vars &var2) {
     std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+    //std::cout<<"UP min_plus = "<<bpair.first<<" UP max_minus = "<<bpair.second<<std::endl;
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }

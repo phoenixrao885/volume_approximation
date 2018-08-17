@@ -241,6 +241,123 @@ bool memLP_Vpoly(MT V, Point q){
 }
 
 
+template <typename FT>
+bool get_separeting_hyp(MT V, Point q, std::vector<FT> &hyp){
+
+    int d=q.dimension();
+    lprec *lp;
+    int Ncol=d+1, *colno = NULL, j, ret = 0, m=V.rows();
+    m++;
+    REAL *row = NULL;
+
+    lp = make_lp(m, Ncol);
+
+    if(lp == NULL)
+        ret = 1; /* couldn't construct a new model... */
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    if(ret == 0) {
+        /* create space large enough for one row */
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+        if((colno == NULL) || (row == NULL))
+            ret = 2;
+    }
+
+    if(ret == 0) {
+        set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+    }
+    int i=0;
+    while(ret==0 & i<m-1){
+        /* construct all rows */
+        for(j=0; j<d; j++){
+            colno[j] = j+1;
+            row[j] = V(i,j);
+        }
+        colno[d] = d+1;
+        row[d] = -1.0;
+        //set_bounds(lp, d, 0.0, infinite);
+
+
+        /* add the row to lpsolve */
+        if(!add_constraintex(lp, d+1, row, colno, LE, 0.0)){
+            ret = 3;
+        }
+        i++;
+    }
+    if (ret==0){
+        for(j=0; j<d; j++){
+            colno[j] = j+1; /* last column */
+            row[j] = q[j];
+        }
+        colno[d] = d+1; /* last column */
+        row[d] = -1.0;
+
+        /* add the row to lpsolve */
+        if(!add_constraintex(lp, d+1, row, colno, LE, 1.0)){
+            ret = 3;
+        }
+    }
+
+    //set the bounds
+    if(ret == 0) {
+        set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+        // set the bounds
+        for(j=0; j<d; j++){
+            colno[j] = j+1; /* j_th column */
+            row[j] = q[j];
+            set_bounds(lp, j+1, -infinite, infinite);
+        }
+        colno[d] = d+1; /* last column */
+        row[d] = -1.0;
+        set_bounds(lp, d+1, -infinite, infinite);
+
+        // set the objective function
+        if(!set_obj_fnex(lp, d+1, row, colno)){
+            ret = 4;
+        }
+
+    }
+
+    if(ret == 0) {
+        /* set the object direction to maximize */
+        set_maxim(lp);
+
+        /* I only want to see important messages on screen while solving */
+        set_verbose(lp, NEUTRAL);
+
+        /* Now let lpsolve calculate a solution */
+        ret = solve(lp);
+        if(ret == OPTIMAL)
+            ret = 0;
+        else
+            ret = 5;
+    }
+
+    if (ret == 0) {
+        NT r = NT(get_objective(lp));
+        get_variables(lp, row);
+
+        if(r>0.0){
+            for(j = 0; j < d; j++){
+                hyp[j]=NT(row[j]);
+            }
+            std::cout<<row[d];
+            delete_lp(lp);
+            return true;
+        }
+        delete_lp(lp);
+        return false;
+
+    }
+    std::cout<<"Linear Program for the separating hyperplane failed"<<std::endl;
+    exit(-1);
+    return 0;
+}
+
+
 // compute the intersection of a ray with a V-polytope
 // if maxi is true compute positive lambda, when the ray is p + lambda \codt v
 // otherwise compute the negative lambda

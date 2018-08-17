@@ -308,9 +308,9 @@ void gaussian_ball_walk(Point &p,
     Point y = get_point_in_Dsphere(n, ball_rad);
     y = y + p;
     f_x = eval_exp(p, a_i);
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    RNGType &rng2 = var.rng;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng2(seed);
+    //RNGType &rng2 = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     if (P.is_in(y) == -1) {
         f_y = eval_exp(y, a_i);
