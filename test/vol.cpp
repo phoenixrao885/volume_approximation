@@ -405,6 +405,10 @@ int main(const int argc, const char** argv)
           }else{
               //vol = volume(VP, var, var, CheBall);
               vol = Vpoly_volume(VP, var);
+              NT ext = 1.0/factorial(10);
+              std::cout<<"exact volume = "<<ext<<std::endl;
+              NT error_vol = std::abs(vol - ext) / ext;
+              std::cout<<"error = "<<error_vol<<std::endl;
           }
       }
 

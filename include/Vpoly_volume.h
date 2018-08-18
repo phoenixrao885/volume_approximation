@@ -21,10 +21,10 @@
 template <class T>
 NT Vpoly_volume (T &P, vars var) {
 
+    int n = var.n, min_index, max_index, index;
     std::vector<Interballs> ConvSet;
     std::vector<Ball> vecBalls;
     P.print();
-    int n = var.n;
     bool print = var.verbose;
     NT vol;
     if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
@@ -34,30 +34,139 @@ NT Vpoly_volume (T &P, vars var) {
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
 
     NT rad = vecBalls[0].radius();
-    vol = (std::pow(M_PI,n/2.0)*(rad, n) )  / (tgamma(n/2.0+1));
+    vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
 
-    /*
-    if (print) std::cout<<"Computing minimum enclosing ball..\n";
-    std::pair<Point, NT> res = compute_minball(P);
-    if (print) std::cout<<"Computation of minimum enclosing ball completed!\n";
-    Point xc = res.first;
-    if (print) std::cout<<"center of minimum enclosing ball = ";
-    xc.print();
-    if (print) std::cout<<"radius of minimum enclosing ball = "<<res.second<<std::endl;
+    int W = 5000;
+    std::vector<NT> last_W2(W,0);
+    Point p(n);
+    int mm = ConvSet.size();
+    std::vector<NT> ratios(mm,0);
 
-    if (print) std::cout<<"\nshifting polytope...\n\n";
-    VT c_e(n);
-    for(int i=0; i<n; i++){
-        c_e(i)=xc[i];  // write chebychev center in an eigen vector
+    NT error = 0.1, curr_eps, min_val, max_val, val;
+    curr_eps = error/std::sqrt((NT(mm)));
+    typename  std::vector<Interballs>::iterator CnvIt = ConvSet.begin();
+    typename std::vector<NT>::iterator minmaxIt;
+
+    Interballs S1(n);
+    Interballs S2(n);
+    int i;
+    NT countIn, countTot;
+    for ( i=0;  i<mm-1; i++) {
+        S1 = ConvSet[i];
+        S2 = ConvSet[i+1];
+        p = Point(n);
+
+        countIn = 0.0;
+        countTot = 0.0;
+
+        min_val = minNT;
+        max_val = maxNT;
+        min_index = W-1;
+        max_index = W-1;
+        index = 0;
+        std::vector<NT> last_W=last_W2;
+        bool done = false;
+
+
+        while(!done) {
+            rand_point(S1, p, var);
+            countTot += 1.0;
+
+            if (S2.is_in(p)==-1) {
+                countIn += 1.0;
+            }
+            val = countIn / countTot;
+
+            last_W[index] = val;
+            if(val<=min_val){
+                min_val = val;
+                min_index = index;
+            }else if(min_index==index){
+                minmaxIt = std::min_element(last_W.begin(), last_W.end());
+                min_val = *minmaxIt;
+                min_index = std::distance(last_W.begin(), minmaxIt);
+            }
+
+            if(val>=max_val){
+                max_val = val;
+                max_index = index;
+            }else if(max_index==index){
+                minmaxIt = std::max_element(last_W.begin(), last_W.end());
+                max_val = *minmaxIt;
+                max_index = std::distance(last_W.begin(), minmaxIt);
+            }
+
+            if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+                done=true;
+            }
+
+            index = index%W+1;
+
+            if(index==W) index=0;
+
+
+        }
+        if(print) std::cout<<"ratio "<<i<<" = "<<val<<" N_"<<i<<" = "<<countTot<<std::endl;
+        vol = vol * val;
+
     }
-    P.shift(c_e);
 
-    xc = Point(n);
+    S2 = ConvSet[mm-1];
+    p = Point(n);
 
-    std::vector<Ball> S0;
-    S0.push_back(Ball(xc, res.second * res.second));
-    // starting convex body is the minimum enclosing ball of the V-polytope
-    ConvSet.push_back(InterBalls(P.dimension(), S0));*/
+    countIn = 0.0;
+    countTot = 0.0;
+
+    min_val = minNT;
+    max_val = maxNT;
+    min_index = W-1;
+    max_index = W-1;
+    index = 0;
+    std::vector<NT> last_W=last_W2;
+    bool done = false;
+
+
+    while(!done) {
+        rand_point(S2, p, var);
+        countTot += 1.0;
+
+        if (P.is_in(p)==-1) {
+            countIn += 1.0;
+        }
+        val = countIn / countTot;
+
+        last_W[index] = val;
+        if(val<=min_val){
+            min_val = val;
+            min_index = index;
+        }else if(min_index==index){
+            minmaxIt = std::min_element(last_W.begin(), last_W.end());
+            min_val = *minmaxIt;
+            min_index = std::distance(last_W.begin(), minmaxIt);
+        }
+
+        if(val>=max_val){
+            max_val = val;
+            max_index = index;
+        }else if(max_index==index){
+            minmaxIt = std::max_element(last_W.begin(), last_W.end());
+            max_val = *minmaxIt;
+            max_index = std::distance(last_W.begin(), minmaxIt);
+        }
+
+        if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+            done=true;
+        }
+
+        index = index%W+1;
+
+        if(index==W) index=0;
+
+
+    }
+    if(print) std::cout<<"ratio "<<mm-1<<" = "<<val<<" N_"<<mm-1<<" = "<<countTot<<std::endl;
+    vol = vol * val;
+
 
 
 
