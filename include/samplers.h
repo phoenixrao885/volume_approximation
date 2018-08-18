@@ -113,9 +113,9 @@ void rand_point_generator(T &P,
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-        std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
-        std::cout<<"rand_coord = "<<rand_coord<<" kapa = "<<kapa<<std::endl;
-        std::cout<<P.is_in(p)<<std::endl;
+        //std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
+        //std::cout<<"rand_coord = "<<rand_coord<<" kapa = "<<kapa<<std::endl;
+        //std::cout<<P.is_in(p)<<std::endl;
     } else
         hit_and_run(p, P, var, var);
 
