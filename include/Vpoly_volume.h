@@ -22,6 +22,7 @@ template <class T>
 NT Vpoly_volume (T &P, vars var) {
 
     int n = var.n, min_index, max_index, index;
+    var.delta = 4.0*0.8/NT(n);
     std::vector<Interballs> ConvSet;
     std::vector<Ball> vecBalls;
     P.print();
@@ -36,11 +37,12 @@ NT Vpoly_volume (T &P, vars var) {
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
 
-    int W = 5000;
+    int W = 1200;
     std::vector<NT> last_W2(W,0);
     Point p(n);
     int mm = ConvSet.size();
     std::vector<NT> ratios(mm,0);
+    var.walk_steps=1;
 
     NT error = 0.1, curr_eps, min_val, max_val, val;
     curr_eps = error/std::sqrt((NT(mm)));
@@ -96,7 +98,7 @@ NT Vpoly_volume (T &P, vars var) {
                 max_index = std::distance(last_W.begin(), minmaxIt);
             }
 
-            if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+            if( (max_val-min_val)/max_val<curr_eps/2.0){
                 done=true;
             }
 
@@ -154,7 +156,7 @@ NT Vpoly_volume (T &P, vars var) {
             max_index = std::distance(last_W.begin(), minmaxIt);
         }
 
-        if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+        if( (max_val-min_val)/max_val<=curr_eps ){
             done=true;
         }
 

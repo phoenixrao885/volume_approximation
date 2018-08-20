@@ -192,7 +192,7 @@ template <class T>
 void rand_point(T &P, Point &p, vars &var){
 
     int n = var.n;
-    int walk_len = 11;
+    int walk_len = var.walk_steps;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
@@ -201,7 +201,9 @@ void rand_point(T &P, Point &p, vars &var){
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
 
     if (var.ball_walk) {
-        ball_walk(p, P, var.delta);
+        for (int i = 0; i < walk_len; ++i) {
+            ball_walk(p, P, var.delta);
+        }
     }else if (var.coordinate) {
         //rand_coord_prev = rand_coord;
         for (int i = 0; i < walk_len; ++i) {
@@ -213,7 +215,9 @@ void rand_point(T &P, Point &p, vars &var){
             //hit_and_run_coord_update(p, p, P, rand_coord, 0, kapa, lamdas, var, var);
         }
     } else {
-        hit_and_run(p, P, var, var);
+        for (int i = 0; i < walk_len; ++i) {
+            hit_and_run(p, P, var, var);
+        }
     }
 }
 
