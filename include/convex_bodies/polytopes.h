@@ -445,7 +445,8 @@ public:
         }
         num_of_hyp += nom / denom;
 
-        return num_of_hyp;
+        //return num_of_hyp;
+                return 100;
     }
 
 

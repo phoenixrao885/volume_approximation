@@ -37,7 +37,7 @@ NT Vpoly_volume (T &P, vars var) {
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
 
-    int W = 1200;
+    int W = 4*n*n;
     std::vector<NT> last_W2(W,0);
     Point p(n);
     int mm = ConvSet.size();
@@ -78,6 +78,7 @@ NT Vpoly_volume (T &P, vars var) {
                 countIn += 1.0;
             }
             val = countIn / countTot;
+            //val = countTot / countIn;
 
             last_W[index] = val;
             if(val<=min_val){
@@ -110,9 +111,12 @@ NT Vpoly_volume (T &P, vars var) {
         }
         if(print) std::cout<<"ratio "<<i<<" = "<<val<<" N_"<<i<<" = "<<countTot<<std::endl;
         vol = vol * val;
+        //vol = vol * (1.0 / val);
 
     }
 
+    var.walk_steps=2*(10+10/n);
+    //W = W/2;
     S2 = ConvSet[mm-1];
     p = Point(n);
 
@@ -124,7 +128,8 @@ NT Vpoly_volume (T &P, vars var) {
     min_index = W-1;
     max_index = W-1;
     index = 0;
-    std::vector<NT> last_W=last_W2;
+    //std::vector<NT> last_W=last_W2;
+    std::vector<NT> last_W(W,0);
     bool done = false;
 
 
@@ -136,6 +141,7 @@ NT Vpoly_volume (T &P, vars var) {
             countIn += 1.0;
         }
         val = countIn / countTot;
+        //val = countTot / countIn;
 
         last_W[index] = val;
         if(val<=min_val){
@@ -156,7 +162,7 @@ NT Vpoly_volume (T &P, vars var) {
             max_index = std::distance(last_W.begin(), minmaxIt);
         }
 
-        if( (max_val-min_val)/max_val<=curr_eps ){
+        if( (max_val-min_val)/max_val<=curr_eps / 2.0 ){
             done=true;
         }
 
@@ -168,6 +174,7 @@ NT Vpoly_volume (T &P, vars var) {
     }
     if(print) std::cout<<"ratio "<<mm-1<<" = "<<val<<" N_"<<mm-1<<" = "<<countTot<<std::endl;
     vol = vol * val;
+    //vol = vol * (1.0 / val);
 
 
 
