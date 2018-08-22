@@ -18,6 +18,8 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+#include "ratio_esti.h"
+
 template <class T>
 NT Vpoly_volume (T &P, vars var) {
 
@@ -37,8 +39,20 @@ NT Vpoly_volume (T &P, vars var) {
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
 
-    int W = 2*n*n*((int)std::log2(n))+800;
-    //int W =1200;
+    //int mm = ConvSet.size();
+    //NT error = 0.1;
+    //NT curr_eps = error/std::sqrt((NT(mm)));
+    std::vector<NT> ratios;// = ratio_esti(P, ConvSet, 1.0, curr_eps, var);
+    std::pair<NT,NT> mv;
+    //typename std::vector<NT>::iterator ratIt = ratios.begin();
+
+    //for (; ratIt!=ratios.end(); ++ratIt) {
+     //   vol = vol * (*ratIt);
+    //}
+
+    if (true) {
+    int W = (10*n*100);
+    //int W =100;
     std::vector<NT> last_W2(W,0);
     Point p(n);
     int mm = ConvSet.size();
@@ -50,11 +64,13 @@ NT Vpoly_volume (T &P, vars var) {
     curr_eps = error/std::sqrt((NT(mm)));
     typename  std::vector<Interballs>::iterator CnvIt = ConvSet.begin();
     typename std::vector<NT>::iterator minmaxIt;
+    typename std::list<Point>::iterator rpit;
 
     Interballs S1(n);
     Interballs S2(n);
-    int i;
-    NT countIn, countTot;
+    int i, count;
+    NT countIn, countTot=100.0;
+    std::list<Point> randPoints;
     for ( i=0;  i<mm-1; i++) {
         S1 = ConvSet[i];
         S2 = ConvSet[i+1];
@@ -70,16 +86,34 @@ NT Vpoly_volume (T &P, vars var) {
         index = 0;
         std::vector<NT> last_W=last_W2;
         bool done = false;
+        count = 0;
+        ratios.clear();
 
 
         while(!done) {
             rand_point(S1, p, var);
             countTot += 1.0;
+            //countIn = 0.0;
+
+            /*randPoints.clear();
+            rand_point_generator(S1, p, 100, var.walk_steps, randPoints, var);
+            rpit = randPoints.begin();
+            count++;
+            for ( ; rpit!=randPoints.end(); ++rpit) {
+                if(S2.is_in(*rpit)==-1){
+                    countIn += 1.0;
+                }
+            }*/
+
 
             if (S2.is_in(p)==-1) {
                 countIn += 1.0;
             }
             val = countIn / countTot;
+            //ratios.push_back(val);
+            //mv = getMeanVariance(ratios);
+            //val = mv.first;
+            //std::cout<<"val = "<<val<<std::endl;
             //val = countTot / countIn;
 
             last_W[index] = val;
@@ -101,6 +135,7 @@ NT Vpoly_volume (T &P, vars var) {
                 max_index = std::distance(last_W.begin(), minmaxIt);
             }
 
+            //std::cout<<(max_val-min_val)/max_val<<" > "<<curr_eps/2.0<<std::endl;
             if( (max_val-min_val)/max_val<curr_eps/2.0){
                 done=true;
             }
@@ -125,6 +160,7 @@ NT Vpoly_volume (T &P, vars var) {
     countIn = 0.0;
     countTot = 0.0;
 
+    W =2*n*100;
     min_val = minNT;
     max_val = maxNT;
     min_index = W-1;
@@ -133,16 +169,31 @@ NT Vpoly_volume (T &P, vars var) {
     //std::vector<NT> last_W=last_W2;
     std::vector<NT> last_W(W,0);
     bool done = false;
+    ratios.clear();
 
 
     while(!done) {
         rand_point(S2, p, var);
         countTot += 1.0;
 
+        /*countIn = 0.0;
+        randPoints.clear();
+        rand_point_generator(S2, p, 100, var.walk_steps, randPoints, var);
+        rpit = randPoints.begin();
+        for ( ; rpit!=randPoints.end(); ++rpit) {
+            if(P.is_in(*rpit)==-1){
+                countIn += 1.0;
+            }
+        }*/
+
+
         if (P.is_in(p)==-1) {
             countIn += 1.0;
         }
         val = countIn / countTot;
+        //ratios.push_back(val);
+        //mv = getMeanVariance(ratios);
+        //val = mv.first;
         //val = countTot / countIn;
 
         last_W[index] = val;
@@ -177,6 +228,7 @@ NT Vpoly_volume (T &P, vars var) {
     if(print) std::cout<<"ratio "<<mm-1<<" = "<<val<<" N_"<<mm-1<<" = "<<countTot<<std::endl;
     vol = vol * val;
     //vol = vol * (1.0 / val);
+    }
 
 
 

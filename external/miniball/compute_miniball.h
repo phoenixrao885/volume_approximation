@@ -18,6 +18,9 @@
 template <class T>
 std::pair<Point, NT> compute_minball(T &P) {
 
+    typedef typename T::MT 	MT;
+    typedef typename T::VT 	VT;
+
     typedef Seb::Point<NT> Point_seb;
     typedef std::vector<Point_seb> PointVector;
     typedef Seb::Smallest_enclosing_ball<NT> Miniball;

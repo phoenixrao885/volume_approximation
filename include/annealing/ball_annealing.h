@@ -323,7 +323,7 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, bool first) {
         }
     }
 
-    if (check_t_test(ratios, a, 0.5)) {
+    if (check_t_test(ratios, a, 0.2)) {
         return true;
     }
     return false;
@@ -334,6 +334,8 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, bool first) {
 template <class T>
 void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, vars &var) {
 
+    typedef typename T::MT 	MT;
+    typedef typename T::VT 	VT;
     int n = P.dimension();
     std::vector<NT> vec(n,0.0);
 
@@ -522,7 +524,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
             } else {
                 itercount += 1.0;
                 totcount += 1.0;
-                if (totcount>4.0 && !tested) {
+                if (totcount>2.0 && !tested) {
                     if (is_last_conv(P, Si, a, var, false)){
                         ConvSet.push_back(Si);
                         done = true;
