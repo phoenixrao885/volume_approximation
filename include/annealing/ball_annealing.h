@@ -439,6 +439,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
     Point direction(n), cent(n), qbound(n);
 
     bool added=false;
+    bool tested=false;
     typename  std::list<Point>::iterator pit;
         while (true) {
 
@@ -452,7 +453,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
             } else {
                 rand_point(Si, q, var);
             }
-            totcount += 1.0;
+            //totcount += 0.0;
             if (print) std::cout<<"rand point is in: "<<Si.is_in(q)<<std::endl;
             //q.print();
             /*if (is_last_conv(P, Si, a, var, false)){
@@ -502,7 +503,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                     }
                 }
                 std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-                if (added && count_bef-count<100) {
+                if (added && count_bef-count<80) {
                     if (is_last_conv(P, Si, a, var, false)) {
                         ConvSet.push_back(Si);
                         done = true;
@@ -514,18 +515,20 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                 q = Point(n);
                 Si.add_ball(ball_iter);
                 added = true;
-                totcount +=0.0;
+                tested = false;
+                totcount =0.0;
                 count_bef = count;
                 count = 0;
             } else {
                 itercount += 1.0;
                 totcount += 1.0;
-                if (totcount>2.0) {
+                if (totcount>4.0 && !tested) {
                     if (is_last_conv(P, Si, a, var, false)){
                         ConvSet.push_back(Si);
                         done = true;
                         return;
                     }
+                    tested = true;
                 }
             }
         }

@@ -37,12 +37,14 @@ NT Vpoly_volume (T &P, vars var) {
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
 
-    int W = 4*n*n;
+    int W = 2*n*n*((int)std::log2(n))+800;
+    //int W =1200;
     std::vector<NT> last_W2(W,0);
     Point p(n);
     int mm = ConvSet.size();
     std::vector<NT> ratios(mm,0);
-    var.walk_steps=1;
+    //var.walk_steps=1;
+    var.walk_steps = 1;
 
     NT error = 0.1, curr_eps, min_val, max_val, val;
     curr_eps = error/std::sqrt((NT(mm)));
