@@ -51,7 +51,7 @@ NT Vpoly_volume (T &P, vars var) {
     //}
 
     if (true) {
-    int W = (10*n*100);
+    int W = 10*n*n*std::log2(NT(n))+500;
     //int W =100;
     std::vector<NT> last_W2(W,0);
     Point p(n);
@@ -90,9 +90,10 @@ NT Vpoly_volume (T &P, vars var) {
         ratios.clear();
 
 
-        while(!done) {
+        while(!done){//} && count<60000) {
             rand_point(S1, p, var);
             countTot += 1.0;
+            count++;
             //countIn = 0.0;
 
             /*randPoints.clear();
@@ -146,7 +147,8 @@ NT Vpoly_volume (T &P, vars var) {
 
 
         }
-        if(print) std::cout<<"ratio "<<i<<" = "<<val<<" N_"<<i<<" = "<<countTot<<std::endl;
+        if(print) std::cout<<"ratio "<<i<<" = "<<val<<" N_"<<i<<" = "<<countTot<<" num_of_balls = "<<S1.num_of_balls()<<std::endl;
+        std::cout<<"walk step = "<<var.walk_steps<<std::endl;
         vol = vol * val;
         //vol = vol * (1.0 / val);
 
@@ -160,7 +162,7 @@ NT Vpoly_volume (T &P, vars var) {
     countIn = 0.0;
     countTot = 0.0;
 
-    W =2*n*100;
+    W =4*n*n*std::log2(NT(n)) + 500;
     min_val = minNT;
     max_val = maxNT;
     min_index = W-1;
@@ -225,7 +227,7 @@ NT Vpoly_volume (T &P, vars var) {
 
 
     }
-    if(print) std::cout<<"ratio "<<mm-1<<" = "<<val<<" N_"<<mm-1<<" = "<<countTot<<std::endl;
+    if(print) std::cout<<"ratio "<<mm-1<<" = "<<val<<" N_"<<mm-1<<" = "<<countTot<<" num_of_balls = "<<S2.num_of_balls()<<std::endl;
     vol = vol * val;
     //vol = vol * (1.0 / val);
     }
