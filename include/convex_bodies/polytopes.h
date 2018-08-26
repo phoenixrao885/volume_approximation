@@ -31,8 +31,15 @@ private:
     typedef typename std::vector<FT>::iterator viterator;
 
 public:
+    HPolytope(int dim) {
+        _d = dim;
+        A.resize(0,_d);
+        b.resize(0);
+    }
+
     HPolytope() {}
 
+    /*
     // constructor: cube(d)
     HPolytope(int d): _d(d) {
         A.resize(2 * d, d);
@@ -57,7 +64,7 @@ public:
                 }
             }
         }
-    }
+    }*/
 
 
     // return dimension
@@ -117,6 +124,14 @@ public:
     // set a spesific coeff of vector b
     void put_vec_coeff(int i, FT value) {
         b(i) = value;
+    }
+
+    void add_facet(VT coeffs, NT constant) {
+        A.conservativeResize(A.rows()+1 , Eigen::NoChange);
+        A.row(A.rows()-1) = coeffs;
+
+        b.conservativeResize(b.size()+1);
+        b.row(b.size()-1) = constant;
     }
 
 

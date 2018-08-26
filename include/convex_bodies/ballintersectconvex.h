@@ -92,6 +92,9 @@ private:
 template <class T, typename FT>
 class BallIntersectPolytope {
 public:
+    typedef T Polytope;
+    typedef typename Polytope::VT VT;
+
     BallIntersectPolytope(T &P, Ball &B) : _P(P), _B(B) {};
     
     T first() { return _P; }
@@ -109,6 +112,10 @@ public:
 
     int dimension(){
         return _P.dimension();
+    }
+
+    void add_facet(VT coeffs, NT constant) {
+        _P.add_facet(coeffs, constant);
     }
 
     std::pair<FT,FT> line_intersect(Point r,
@@ -154,6 +161,81 @@ public:
 private:
     T    _P;
     Ball _B;
+};
+
+
+template <class Point, class VT>
+class Halfspace {
+public:
+    typedef  typename Point::FT    NT;
+private:
+    VT coeffs;
+    NT constant;
+    int _d;
+public:
+    Halfspace() {}
+
+    Halfspace(int dim) {
+        _d = dim;
+        coeffs.resize(_d);
+    }
+
+    Halfspace(std::vector<NT> direction, NT z0) {
+        coeffs.resize(direction.size());
+        typename std::vector<NT>::iterator hypIt;
+        hypIt = direction.begin();
+        unsigned int i=0;
+
+        for ( ; hypIt!=direction.end(); ++hypIt, ++i) {
+            coeffs[i] = *hypIt;
+        }
+        constant = z0;
+    }
+
+    Halfspace(VT direction, NT z0) {
+        coeffs = direction;
+        constant = z0;
+    }
+
+    VT get_normal_vec() {
+        return coeffs;
+    }
+
+    NT get_constant() {
+        return constant;
+    }
+
+    void set_normal_vector(VT newvec) {
+        coeffs = newvec;
+    }
+
+    void set_normal_vector(std::vector<NT> newvec){
+        unsigned int i = 0;
+        typename std::vector<NT>::iterator hypIt;
+        hypIt = newvec.begin();
+
+        for ( ; hypIt!=newvec.end(); ++hypIt, ++i) {
+            coeffs[i] = *hypIt;
+        }
+    }
+
+    void set_constant(NT z0) {
+        constant = z0;
+    }
+
+    int is_in(Point p){
+        unsigned int i = 0;
+        typename std::vector<NT>::iterator pit;
+        pit = p.iter_begin();
+        NT sum = 0.0;
+
+        for ( ; pit!=p.iter_end(); ++pit, ++i) {
+            sum += (*pit) * coeffs[i];
+        }
+        if (sum < constant) return -1;
+        return 0;
+    }
+
 };
 
 

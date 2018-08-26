@@ -58,7 +58,7 @@ NT Vpoly_volume (T &P, vars var) {
     int mm = ConvSet.size();
     std::vector<NT> ratios(mm,0);
     //var.walk_steps=1;
-    var.walk_steps = 1;
+    var.walk_steps = 10+n/10;
 
     NT error = 0.1, curr_eps, min_val, max_val, val;
     curr_eps = error/std::sqrt((NT(mm)));
@@ -70,7 +70,9 @@ NT Vpoly_volume (T &P, vars var) {
     Interballs S2(n);
     int i, count;
     NT countIn, countTot=100.0;
-    std::list<Point> randPoints;
+    std::list<Point> randPoints, nextrandPoints;
+    nextrandPoints.clear();
+    int bef_points;
     for ( i=0;  i<mm-1; i++) {
         S1 = ConvSet[i];
         S2 = ConvSet[i+1];
@@ -85,14 +87,31 @@ NT Vpoly_volume (T &P, vars var) {
         max_index = W-1;
         index = 0;
         std::vector<NT> last_W=last_W2;
-        bool done = false;
+        bool done = false, first_rnum = true;
         count = 0;
-        ratios.clear();
-
+        bool reuse = true;
+        //nextrandPoints.clear();
+        //ratios.clear()
 
         while(!done){//} && count<60000) {
-            rand_point(S1, p, var);
-            countTot += 1.0;
+            randPoints.clear();
+            //rand_point(S1, p, var);
+            if(reuse){
+                randPoints = nextrandPoints;
+                bef_points = nextrandPoints.size();
+                std::cout<<"reuse = "<<nextrandPoints.size()<<std::endl;
+                nextrandPoints.clear();
+                reuse = false;
+            }else if (first_rnum){
+                rand_point_generator(S1, p, ((int)std::pow(1.0,-2.0) * 400 * n * std::log(n))-bef_points, var.walk_steps, randPoints, var);
+                std::cout<<"first rnum = "<<((int)std::pow(1.0,-2.0) * 400 * n * std::log(n))<<" done: "<<((int)std::pow(1.0,-2.0) * 400 * n * std::log(n))*((int)10+n/10)<<std::endl;
+                first_rnum = false;
+            } else {
+                done=true;
+                break;
+                rand_point_generator(S1, p, W, var.walk_steps, randPoints, var);
+            }
+            //countTot += 1.0;
             count++;
             //countIn = 0.0;
 
@@ -106,9 +125,13 @@ NT Vpoly_volume (T &P, vars var) {
                 }
             }*/
 
+            rpit = randPoints.begin();
+            for ( ; rpit!=randPoints.end(); ++rpit) {
+                countTot += 1.0;
 
-            if (S2.is_in(p)==-1) {
+            if (S2.is_in(*rpit)==-1) {
                 countIn += 1.0;
+                nextrandPoints.push_back(*rpit);
             }
             val = countIn / countTot;
             //ratios.push_back(val);
@@ -137,13 +160,15 @@ NT Vpoly_volume (T &P, vars var) {
             }
 
             //std::cout<<(max_val-min_val)/max_val<<" > "<<curr_eps/2.0<<std::endl;
-            if( (max_val-min_val)/max_val<curr_eps/2.0){
+            if( (max_val-min_val)/max_val<curr_eps/2.0 && false){
                 done=true;
+                break;
             }
 
             index = index%W+1;
 
             if(index==W) index=0;
+            }
 
 
         }
@@ -154,7 +179,8 @@ NT Vpoly_volume (T &P, vars var) {
 
     }
 
-    var.walk_steps=2*(10+10/n);
+    //var.walk_steps=2*(10+10/n);
+    var.walk_steps = 15*std::log2(NT(n));
     //W = W/2;
     S2 = ConvSet[mm-1];
     p = Point(n);
@@ -162,7 +188,7 @@ NT Vpoly_volume (T &P, vars var) {
     countIn = 0.0;
     countTot = 0.0;
 
-    W =4*n*n*std::log2(NT(n)) + 500;
+    W =4*n*n + 500;
     min_val = minNT;
     max_val = maxNT;
     min_index = W-1;

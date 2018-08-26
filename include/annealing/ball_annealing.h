@@ -415,7 +415,7 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
                 pit++;
             }
         }
-        if (count>200){
+        if (count>190){
             break;
         } else {
             if (iters >10){
@@ -465,7 +465,7 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
                 }
             }
 
-            if (count<200){
+            if (count<190){
                 // firstit = false;
                 std::cout<<"RECONSTRUCTION... count = "<<count<<std::endl;
                 SiIter = Si;
@@ -563,7 +563,7 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
     //Point xc = Point(n);
     //std::vector<Ball> S0;
     vecBalls.push_back(Ball(Point(n), rad));
-    ConvSet.push_back(Interballs(P.dimension(), vecBalls));
+    //ConvSet.push_back(Interballs(P.dimension(), vecBalls));
 
 }
 /*
@@ -671,7 +671,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                 itercount = 0.0;
                 //totcount = 0.0;
                 std::cout<<"count = "<<count<<std::endl;
-                if (count<200) {
+                if (count<190) {
                     std::cout<<"count = "<<count<<std::endl;
                     SiIter = Si;
                     SiIter.add_ball(ball_iter);
@@ -700,7 +700,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                     }
                 }
                 std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-                if (added && count_bef-count<80) {
+                if (added && count_bef-count<70) {
                     if (is_last_conv(P, Si, a, var, false)) {
                         ConvSet.push_back(Si);
                         std::cout<<"\nADD LAST CONVEX No. "<<ConvSet.size()<<std::endl;
@@ -738,10 +738,12 @@ template <class T1, typename FT>
 void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, vars &var) {
 
     int n = var.n;
+    typedef BallIntersectPolytope<T1,NT>        BallPoly;
     bool print = var.verbose;
     //var.walk_steps=11;
     if (print) std::cout<<"computing first convex enclosing body...(minimum enclosing ball)\n"<<std::endl;
     get_first_conv(P, ConvSet, vecBalls, var);
+    ConvSet.push_back(Interballs(P.dimension(), vecBalls));
     if (print) std::cout<<"P in first ball "<<P.is_in_ball(vecBalls[0].center(), vecBalls[0].radius())<<std::endl;
     P.print();
     if (print) std::cout<<"first convex enclosing body computed!\n"<<std::endl;
