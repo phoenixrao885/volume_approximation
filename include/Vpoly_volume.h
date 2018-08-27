@@ -31,13 +31,14 @@ NT Vpoly_volume (T &P, vars var) {
     bool print = var.verbose;
     NT vol;
     if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
-    NT round_value;
-    get_ball_schedule(P, ConvSet, vecBalls, 0.70, var);
+    NT round_value, last_ratio;
+    get_ball_schedule(P, ConvSet, vecBalls, 0.70, last_ratio, var);
     if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
 
     NT rad = vecBalls[0].radius();
     vol = (std::pow(M_PI,n/2.0)*(std::pow(rad, n) ) ) / (tgamma(n/2.0+1));
+    std::cout<<"vol of enclosing ball = "<<vol<<std::endl;
 
     //int mm = ConvSet.size();
     //NT error = 0.1;
@@ -180,13 +181,17 @@ NT Vpoly_volume (T &P, vars var) {
     }
 
     //var.walk_steps=2*(10+10/n);
-    var.walk_steps = 15*std::log2(NT(n));
+    var.walk_steps = 10*std::log2(NT(n));
     //W = W/2;
     S2 = ConvSet[mm-1];
     p = Point(n);
 
+    countTot=0.0;
     countIn = 0.0;
-    countTot = 0.0;
+    //countTot = 1200.0;
+    //std::cout<<"last_ratio = "<<last_ratio<<std::endl;
+    //countIn = last_ratio*1200.0;
+    //std::cout<<"countin = "<<countIn<<std::endl;
 
     W =4*n*n + 500;
     min_val = minNT;

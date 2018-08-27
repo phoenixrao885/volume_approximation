@@ -474,7 +474,7 @@ public:
         num_of_hyp += nom / denom;
 
         //return num_of_hyp;
-                return 100;
+                return ((int)std::pow(2.0,FT(_d)));
     }
 
 

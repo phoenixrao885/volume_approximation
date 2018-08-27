@@ -300,7 +300,7 @@ bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, vars &var) {
 
 
 template <class T, typename FT>
-bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, bool first) {
+bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool first) {
 
     int n = var.n;
     bool print = var.verbose, check = false;
@@ -353,16 +353,21 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, bool first) {
         }
     }
 
-    if (check_t_test(ratios, a, 0.5)) {
+    std::pair<FT,FT> mv;
+    if (check_t_test(ratios, a, 0.1)) {
+        mv = getMeanVariance(ratios);
+        last_ratio = mv.first;
         return true;
     }
+    mv = getMeanVariance(ratios);
+    last_ratio = mv.first;
     return false;
 
 }
 
 template <class T1, class T2, typename FT>
 void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Point &center,
-                      Point &q, Point &direction, FT a, std::vector<Interballs> &Convset, bool &last_ball, bool &last_conv, vars &var) {
+                      Point &q, Point &direction, FT a, std::vector<Interballs> &Convset, bool &last_ball, bool &last_conv, FT &last_ratio, vars &var) {
 
     int n = var.n;
     Point v = q * (1.0 / std::sqrt(q.squared_length()));
@@ -426,7 +431,7 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
                     last_ball = true;
                     return;
                 }
-                if (is_last_conv(P, Si, 0.1, var, false)){
+                if (is_last_conv(P, Si, 0.1, var, last_ratio, false)){
                     Convset.push_back(Si);
                     last_conv = true;
                     return;
@@ -562,7 +567,7 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
 
     //Point xc = Point(n);
     //std::vector<Ball> S0;
-    vecBalls.push_back(Ball(Point(n), rad));
+    vecBalls.push_back(Ball(Point(n), rad*rad));
     //ConvSet.push_back(Interballs(P.dimension(), vecBalls));
 
 }
@@ -584,7 +589,7 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
 }*/
 
 template <class T1, typename FT>
-void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, vars &var, bool &done){
+void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, vars &var, FT &last_ratio, bool &done){
 
     int n = var.n;
     bool print = var.verbose;
@@ -630,6 +635,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
     bool added=false;
     bool tested=false, last_ball = false, last_conv = false;
     typename  std::list<Point>::iterator pit;
+    int too_few=0;
         while (true) {
 
             //count_bef = count;
@@ -651,6 +657,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                 return;
             }*/
             if (!P.is_in(q)) {
+                totcount=0.0;
                 if (print) std::cout<<"construct ball"<<std::endl;
                 ball_iter = construct_ball(P, q, cent, qbound, direction, var);
                 if (print) std::cout<<"ball constructed"<<std::endl;
@@ -681,7 +688,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                         std::cout<<"\nADD CONVEX No. "<<ConvSet.size()<<std::endl;
                         return;
                     }
-                    reconstruct_ball(P, randPoints, S, Si, cent, qbound, direction, a, ConvSet, last_ball, last_conv, var);
+                    reconstruct_ball(P, randPoints, S, Si, cent, qbound, direction, a, ConvSet, last_ball, last_conv, last_ratio, var);
                     if (last_conv){
                         done = true;
                         return;
@@ -690,24 +697,42 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                     //ConvSet.push_back(Si);
                     //return;
                     q = Point(n);
+                    totcount=0.0;
                     continue;
                 } else if (count_bef - count < 10 && false) {
                     std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-                    if (is_last_conv(P, Si, a, var, false)){
+                    if (is_last_conv(P, Si, a, var, last_ratio, false)){
                         ConvSet.push_back(Si);
                         done = true;
                         return;
                     }
                 }
-                std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-                if (added && count_bef-count<70) {
-                    if (is_last_conv(P, Si, a, var, false)) {
-                        ConvSet.push_back(Si);
-                        std::cout<<"\nADD LAST CONVEX No. "<<ConvSet.size()<<std::endl;
-                        done = true;
-                        return;
+
+                if (added) {
+                    if (count_bef - count < 12) {
+                        too_few++;
+                        std::cout << "too_few = " << too_few << std::endl;
+                        std::cout << "count_bef - count = " << count_bef - count << std::endl;
+
+                        if (too_few >= 150) {
+                            //continue;
+                            std::cout << "count_bef - count = " << count_bef - count << std::endl;
+                            //if (is_last_conv(P, Si, a, var, last_ratio, false) || true) {
+                                ConvSet.push_back(Si);
+                                std::cout << "\nADD LAST CONVEX No. " << ConvSet.size() << std::endl;
+                                done = true;
+                                return;
+                            //} else {
+                                added = false;
+                            //}
+                        }
+                        if (count_bef - count == 0) {
+                            count=0;
+                            totcount=0.0;
+                            continue;
+                        }
                     } else {
-                        added = false;
+                        too_few = 0;
                     }
                 }
                 q = Point(n);
@@ -717,11 +742,13 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
                 totcount =0.0;
                 count_bef = count;
                 count = 0;
+                std::cout<<"BAL ADDED No: "<<Si.num_of_balls()<<std::endl;
             } else {
                 itercount += 1.0;
                 totcount += 1.0;
-                if (totcount>2.0 && !tested) {
-                    if (is_last_conv(P, Si, a, var, false)){
+                if (totcount>3.0 && !tested) {
+                    std::cout<<"totcount = "<<totcount<<std::endl;
+                    if (is_last_conv(P, Si, a, var, last_ratio, false)){
                         ConvSet.push_back(Si);
                         done = true;
                         return;
@@ -735,7 +762,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
 
 
 template <class T1, typename FT>
-void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, vars &var) {
+void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, FT &last_ratio, vars &var) {
 
     int n = var.n;
     typedef BallIntersectPolytope<T1,NT>        BallPoly;
@@ -752,7 +779,7 @@ void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball
     if (print) std::cout<<"radius = "<<vecBalls[0].radius()<<std::endl;
     Point p = get_point_in_Dsphere(n, vecBalls[0].radius());
     if (print) std::cout<<"checking if first enclosing body is the last as well..\n"<<std::endl;
-    if (is_last_conv(P, ConvSet[0], a, var, true)) {
+    if (is_last_conv(P, ConvSet[0], a, var, last_ratio, true)) {
         if (print) std::cout<<"firsti is last as well\n"<<std::endl;
         return;
     }
@@ -760,7 +787,7 @@ void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball
     bool done = false;
     int test_counter = 2;
     while(!done) {
-        get_next_convex(P, ConvSet, vecBalls, a, var, done);
+        get_next_convex(P, ConvSet, vecBalls, a, var, last_ratio, done);
         if (print) std::cout<<"computation of "<<ConvSet.size()<<" encosing convex body completed.."<<std::endl;
     }
 }
