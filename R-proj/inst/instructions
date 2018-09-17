@@ -3,7 +3,7 @@
                                 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1. You can get the R interface of package 'volesti' from
-"https://github.com/TolisChal/volume_approximation/tree/R_volesti".
+"https://github.com/TolisChal/volume_approximation/tree/volesti_tutorial".
 
   a. Download the zip file from the github and extract it locally.
 
@@ -12,7 +12,7 @@
 ```
 $ git clone https://github.com/TolisChal/volume_approximation.git
 $ cd volume_approximation
-$ git checkout R_volesti
+$ git checkout volesti_tutorial
 ```
 
                           ------------------------------------------------------
