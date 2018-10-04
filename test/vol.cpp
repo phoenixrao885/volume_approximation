@@ -20,14 +20,18 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
-#include "use_double.h"
+#define VOLESTI_DEBUG
+#include <fstream>
 #include "volume.h"
+#include "sample_only.h"
+#include "exact_vols.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
-NT factorial(NT n)
+template <typename FT>
+FT factorial(FT n)
 {
   return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -40,10 +44,17 @@ NT factorial(NT n)
 int main(const int argc, const char** argv)
 {
 	//Deafault values
+    typedef double                    NT;
+    typedef Cartesian<NT>             Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937            RNGType;
+    typedef HPolytope<Point> Hpolytope;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef Zonotope<Point> Zonotope;
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N;
+    int walk_len,N, nsam = 100;
     NT e=1;
-    NT exactvol(-1.0);
+    NT exactvol(-1.0), a=0.5;
     bool verbose=false, 
 	 rand_only=false, 
 	 round_only=false,
@@ -59,17 +70,21 @@ int main(const int argc, const char** argv)
          experiments=true,
          annealing = false,
          Vpoly=false,
-         coordinate=true;
-	
-	//this is our polytope
-	HPolytope<NT> HP;
-	VPolytope<NT> VP;
+         Zono=false,
+         coordinate=true,
+         exact_zono = false,
+         gaussian_sam = false;
 
-	// parameters of CV algorithm
-	bool user_W=false, user_N=false, user_ratio=false;
-	NT ball_radius=0.0;
-	NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
-	
+    //this is our polytope
+    Hpolytope HP;
+    Vpolytope VP; // RNGType only needed for the construction of the inner ball which needs randomization
+    Zonotope  ZP;
+
+    // parameters of CV algorithm
+    bool user_W=false, user_N=false, user_ratio=false;
+    NT ball_radius=0.0;
+    NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
+
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
     exit(-2);
@@ -77,29 +92,34 @@ int main(const int argc, const char** argv)
   
   //parse command line input vars
   for(int i=1;i<argc;++i){
-      bool correct=false;
+      bool correct = false;
 
       if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
           std::cerr<<
                       "Usage:\n"<<
                       "-v, --verbose \n"<<
-                      "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
-                      "-rand, --rand_only : generates only random points\n"<<
-                      "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
-                      //"-f2, --file2 [filename_type_Ax=b,x>=0] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
+                      "-rot : does only rotating to the polytope\n"<<
+                      "-ro, --round_only : does only rounding to the polytope\n"<<
+                      "-rand, --rand_only : only samples from the convex polytope\n"<<
+                      "-nsample : the number of points to sample in rand_olny mode\n"<<
+                      "-gaussian : sample with spherical gaussian target distribution in rand_only mode\n"<<
+                      "-variance : the variance of the spherical distribution in spherical mode (default 1)\n"<<
+                      "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments], for H-polytopes\n"<<
+                      "-f2, --file2 [filename_type_V] [epsilon] [walk_length] [threads] [num_of_experiments], for V-polytopes\n"<<
+                      "-f3, --file3 [filename_type_G] [epsilon] [walk_length] [threads] [num_of_experiments], for Zonotopes\n"<<
                       "-fle, --filele : counting linear extensions of a poset\n"<<
                       //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num_of_experiments]\n"<<
                       "--exact : the exact volume\n"<<
                       "--cube : input polytope is a cube\n"<<
+                      "-exact_zono : compute the exact volume of a zonotope\n"<<
                       "-r, --round : enables rounding of the polytope as a preprocess\n"<<
-                      "-ro, --round_only : does only rounding to the polytope\n"<<
                       "-e, --error epsilon : the goal error of approximation\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
                       "-exp [#exps] : number of experiments (default 1)\n"<<
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
-                      "\n-g_an : use the practical CV algo\n"<<
+                      "\n-cg : use the practical CG algo\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
                       "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
                       "-e, --error epsilon : the goal error of approximation\n"<<
@@ -115,60 +135,77 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"--cube")){
           exactvol = std::pow(2,n);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
-          correct=true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-exact_zono")){
+          exact_zono = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
-          verbose=true;
+          verbose = true;
           std::cout<<"Verbose mode\n";
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-rand")||!strcmp(argv[i],"--rand_only")){
-          rand_only=true;
+          rand_only = true;
           std::cout<<"Generate random points only\n";
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-rdhr")){
-          coordinate=false;
-          correct=true;
+          coordinate = false;
+          correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
-          ball_walk=true;
-          correct=true;
+          ball_walk = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-bwr")){
           delta = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-Win")){
           W = atof(argv[++i]);
-          user_W=true;
-          correct=true;
+          user_W = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-ratio")){
           ratio = atof(argv[++i]);
-          user_ratio=true;
-          correct=true;
+          user_ratio = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-frac")){
           frac = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-C")){
           C = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-N_an")){
           N = atof(argv[++i]);
-          user_N=true;
-          correct=true;
+          user_N = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-nsample")){
+          nsam = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-gaussian")){
+          gaussian_sam = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-variance")){
+          a = atof(argv[++i]);
+          a = 1.0 / (2.0 * a);
+          correct = true;
       }
       //reading from file
       if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")){
-          file=true;
+          file = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<NT> > Pin;
@@ -180,11 +217,11 @@ int main(const int argc, const char** argv)
               std::cout<<"Input polytope: "<<n<<std::endl;
               HP.print();
           }
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
-          file=true;
-          Vpoly=true;
+          file = true;
+          Vpoly = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<NT> > Pin;
@@ -197,7 +234,20 @@ int main(const int argc, const char** argv)
               std::cout<<"Input polytope: "<<n<<std::endl;
               VP.print();
           }
-          correct=true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-f3")||!strcmp(argv[i],"--file3")){
+          file = true;
+          Zono = true;
+          std::cout<<"Reading input from file..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<NT> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin[0][1]-1;
+          ZP.init(Pin);
+          correct = true;
       }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
@@ -220,7 +270,7 @@ int main(const int argc, const char** argv)
 */
       //reading linear extensions and order polytopes
       if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
-          file=true;
+          file = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           inp.open(argv[++i],std::ifstream::in);
@@ -235,51 +285,51 @@ int main(const int argc, const char** argv)
           HP.init(Pin);
           std::cout<<"Input polytope: "<<n<<std::endl;
           linear_extensions = true;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-r")||!strcmp(argv[i],"--round")){
           round = true;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-e")||!strcmp(argv[i],"--error")){
           e = atof(argv[++i]);
-          error=e;
-          correct=true;
+          error = e;
+          correct = true;
       }
       if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
           walk_len = atof(argv[++i]);
-          user_walk_len=true;
-          correct=true;
+          user_walk_len = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-exp")){
           nexp = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-t")||!strcmp(argv[i],"--threads")){
           n_threads = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-NN")){
           std::cout<<"flann software is needed for this option. Experimental feature."
                   <<"Currently under development."<<std::endl;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-ro")){
-          round_only=true;
-          correct=true;
+          round_only = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-birk_sym")){
-          birk=true;
-          correct=true;
+          birk = true;
+          correct = true;
       }
       //rotate the polytope randomly
       if(!strcmp(argv[i],"-rot")){
-          rotate=true;
-          correct=true;
+          rotate = true;
+          correct = true;
       }
-      if(!strcmp(argv[i],"-g_an")){
-          annealing=true;
-          correct=true;
+      if(!strcmp(argv[i],"-cg")){
+          annealing = true;
+          correct = true;
       }
       if(correct==false){
           std::cerr<<"unknown parameters \'"<<argv[i]<<
@@ -288,17 +338,25 @@ int main(const int argc, const char** argv)
       }
       
   }
-  
+
+  if (exact_zono) {
+      NT vol_ex = exact_zonotope_vol<NT>(ZP);
+      std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;
+      return 0;
+  }
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  if(!Vpoly) {
+  if (Zono) {
+      InnerBall = ZP.ComputeInnerBall();
+  } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
   }else{
       InnerBall = VP.ComputeInnerBall();
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  if(verbose) std::cout << "Inner ball time = " << tstop1 - tstart1 << std::endl;
+  if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
   if(verbose){
       std::cout<<"Inner ball center is: "<<std::endl;
       for(unsigned int i=0; i<n; i++){
@@ -308,8 +366,6 @@ int main(const int argc, const char** argv)
   }
   
   // Set the number of random walk steps
-  if(!user_walk_len)
-      walk_len = 10 + n / 10;
 
   if(!user_walk_len) {
       if(!annealing) {
@@ -350,8 +406,49 @@ int main(const int argc, const char** argv)
   }
 
   // If rotate flag is on rotate the polytope
-  if(rotate){
-      rotating(HP);
+  if(rotate) {
+      if (Zono) {
+          rotating<NT>(ZP);
+          std::cout << "\n--------------\nRotated Zonotope\n" << std::endl;
+          ZP.print();
+      } else if (!Vpoly) {
+          rotating<NT>(HP);
+          std::cout << "\n--------------\nRotated polytope\nH-representation\nbegin\n" << std::endl;
+          HP.print();
+      } else {
+          rotating<NT>(VP);
+          std::cout << "\n--------------\nRotated polytope\nV-representation\nbegin\n" << std::endl;
+          VP.print();
+      }
+      return 0;
+  }
+  if (rand_only) {
+      std::list <Point> randPoints;
+      if (ball_walk) {
+          if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
+              if (gaussian_sam) {
+                  delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+              } else {
+                  delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+              }
+          }
+      }
+      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+      vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
+                  false, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+
+      double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
+      if (Zono) {
+          sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+      } else if (!Vpoly) {
+          sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+      } else {
+          sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+      }
+      double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
+      if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
+      return 0;
   }
 
   // the number of random points to be generated in each K_i
@@ -371,45 +468,60 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
                urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-      if(round_only){
+      if(round_only) {
           // Round the polytope and exit
-          std::pair<NT,NT> res_round;
-          res_round = rounding_min_ellipsoid(HP,InnerBall,var);
-          NT round_value = res_round.first;
-          std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
-          HP.print();
-          std::cout<<"end\n--------------\n"<<std::endl;
-      }else{
+          std::pair <NT, NT> res_round;
+          if (Zono){
+              res_round = rounding_min_ellipsoid(ZP, InnerBall, var);
+              std::cout << "\n--------------\nRounded Zonotpe\n" << std::endl;
+              ZP.print();
+          } else if (!Vpoly) {
+              res_round = rounding_min_ellipsoid(HP, InnerBall, var);
+              std::cout << "\n--------------\nRounded polytope\nH-representation\nbegin\n" << std::endl;
+              HP.print();
+          } else {
+              res_round = rounding_min_ellipsoid(VP, InnerBall, var);
+              std::cout << "\n--------------\nRounded polytope\nV-representation\nbegin\n" << std::endl;
+              VP.print();
+          }
+          std::cout << "end\n--------------\n" << std::endl;
+          return 0;
+      } else {
           // Estimate the volume
-          if(annealing){
+          if (annealing) {
+
               // setup the parameters
-              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+              vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
                        urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-              vars_g var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
+              vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
                           verbose,rand_only,round,NN,birk,ball_walk,coordinate);
-              if(!Vpoly) {
+
+              if (Zono) {
+                  vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
+              } else if (!Vpoly) {
                   vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
-              }else{
+              } else {
                   vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
-              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-              std::cout<<"volume computed = "<<vol<<std::endl;
-              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
-              return 0;
-          }
-          if(!Vpoly) {
-              vol = volume(HP, var, var, InnerBall);
-          }else{
-              //vol = volume(VP, var, var, CheBall);
-              vol = Vpoly_volume(VP, var);
-              NT ext = 1.0/factorial(n);
-              std::cout<<"exact volume = "<<ext<<std::endl;
-              NT error_vol = std::abs(vol - ext) / ext;
-              std::cout<<"error = "<<error_vol<<std::endl;
+          } else {
+              if (Zono) {
+                  vol = volume(ZP, var, var, InnerBall);
+              } else if (!Vpoly) {
+                  vol = volume(HP, var, var, InnerBall);
+
+              } else {
+                  //vol = volume(VP, var, var, InnerBall);
+                  typedef Ball<Point> Ball;
+                  vol = Vpoly_volume<Ball, NT>(VP, var);
+                  NT ext = 1.0/factorial(n);
+                  std::cout<<"exact volume = "<<ext<<std::endl;
+                  NT error_vol = std::abs(vol - ext) / ext;
+                  std::cout<<"error = "<<error_vol<<std::endl;
+              }
           }
       }
 

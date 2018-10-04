@@ -174,17 +174,17 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
 }*/
 
 
-template <class T>
-Ball construct_ball(T &P, Point q, Point &cent, Point &qbound, Point &direction,  vars &var) {
+template <class Ball, class Polytope, class Point, class Parameters>
+Ball construct_ball(Polytope &P, Point q, Point &cent, Point &qbound, Point &direction,  Parameters &var) {
 
     int n = var.n;
-
+    typedef typename Polytope::NT NT;
     Point center(n);
     std::cout<<P.is_in(center)<<std::endl;
     Point v = q * (1.0 / std::sqrt(q.squared_length()));
     std::cout<<"v = ";
     v.print();
-    NT min_plus = intersect_line_Vpoly(P.get_mat(), center, v, false);
+    NT min_plus = intersect_line_Vpoly<NT>(P.get_mat(), center, v, false, false);
     std::cout<<"min_plus = "<<min_plus<<std::endl;
     q.print();
     q = v * (min_plus + 0.0001);
@@ -266,8 +266,8 @@ bool check_t_test(std::vector<FT> ratios, FT a, FT p_test){
 }
 
 
-template <typename FT>
-bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, vars &var) {
+template <class Interballs, class Point, typename FT, class Parameters>
+bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, Parameters &var) {
 
     int n = var.n;
     bool print = var.verbose, check = false;
@@ -280,7 +280,7 @@ bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, vars &var) {
     FT countsIn = 0.0;
     int i = 1;
 
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
         if (Si.is_in(*pit)) {
             countsIn += 1.0;
         }
@@ -299,9 +299,11 @@ bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, vars &var) {
 }
 
 
-template <class T, typename FT>
-bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool first) {
+template <class Polytope, class Interballs, typename FT, class Parameters>
+bool is_last_conv(Polytope &P,Interballs &Si, FT a, Parameters &var, FT &last_ratio, bool first) {
 
+    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n;
     bool print = var.verbose, check = false;
     //Interballs Si = (*ConvSet.end());
@@ -314,13 +316,13 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool fir
         if (print) std::cout<<"this is first ball\n"<<std::endl;
         rad = Si.get_ball(0).radius();
         for (int i = 0; i < 10; ++i) {
-            randPoints.push_back(get_point_in_Dsphere(n, rad));
+            randPoints.push_back(get_point_in_Dsphere<RNGType, Point >(n, rad));
         }
     } else {
         rand_point_generator(Si, p, 10, var.walk_steps, randPoints, var);
     }
 
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
         if (P.is_in(*pit)) {
             check = true;
             break;
@@ -333,7 +335,7 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool fir
     //FT rad = vecBalls[0].radius();
     if (first) {
         for (int i = 0; i < 1200; ++i) {
-            randPoints.push_back(get_point_in_Dsphere(n, rad));
+            randPoints.push_back(get_point_in_Dsphere<RNGType ,Point >(n, rad));
         }
     }else {
         rand_point_generator(Si, p, 1200, var.walk_steps, randPoints, var);
@@ -342,7 +344,7 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool fir
     FT countsIn = 0.0;
     int i = 1;
 
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
         if (P.is_in(*pit)) {
             countsIn += 1.0;
         }
@@ -365,14 +367,16 @@ bool is_last_conv(T &P,Interballs &Si, FT a, vars &var, FT &last_ratio, bool fir
 
 }
 
-template <class T1, class T2, typename FT>
-void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Point &center,
-                      Point &q, Point &direction, FT a, std::vector<Interballs> &Convset, bool &last_ball, bool &last_conv, FT &last_ratio, vars &var) {
+template <class Polytope, class PointList, class Interballs, class Point, typename NT, class Parameters>
+void reconstruct_ball(Polytope &P, PointList &randPoints, Interballs &S, Interballs &Si, Point &center,
+                      Point &q, Point &direction, NT a, std::vector<Interballs> &Convset, bool &last_ball,
+                      bool &last_conv, NT &last_ratio, Parameters &var) {
 
     int n = var.n;
+    typedef typename Interballs::cball Ball;
     Point v = q * (1.0 / std::sqrt(q.squared_length()));
     std::pair<NT,NT> bpair = Si.line_intersect(Point(n),v);
-    FT min_plus = bpair.first, tol = 0.000001;
+    NT min_plus = bpair.first, tol = 0.000001;
     //std::cout<<"min_plus = "<<min_plus<<std::endl;
     Point q2 = v * min_plus;
 
@@ -384,7 +388,7 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
     //temp = temp * (1.0 / std::sqrt(temp.squared_length()));
     Interballs SiIter(n);
     typename  std::list<Point>::iterator pit;
-    T2 listIter2;
+    PointList listIter2;
     //int count = 0;
     Ball ball_iter;
     Point p(n);
@@ -395,11 +399,11 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
     //center.print();
     //std::cout<<"radius = "<<std::sqrt((center - q).squared_length())<<std::endl;
     //std::cout<<"P is in ball: "<<P.is_in_ball(center,  std::sqrt((center-q).squared_length()) )<<std::endl;
-    FT rad1 = std::sqrt((center - q).squared_length());
-    FT smallrad = rad1;
+    NT rad1 = std::sqrt((center - q).squared_length());
+    NT smallrad = rad1;
     //FT rad2 = 2*std::sqrt((center - q2).squared_length());
-    FT midrad;
-    FT rad2 = 2 * rad1;
+    NT midrad;
+    NT rad2 = 2 * rad1;
 
 
     Point Inicenter = center;
@@ -523,17 +527,21 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
 }
 
 
-template <class T>
-void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, vars &var) {
+template <class Polytope, class Interballs, class Ball, class Parameters>
+void get_first_conv(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, Parameters &var) {
 
-    typedef typename T::MT 	MT;
-    typedef typename T::VT 	VT;
-    int n = P.dimension();
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Polytope::NT NT;
+    typedef typename Polytope::PolytopePoint Point;
+    unsigned int n = P.dimension();
+    std::cout<<"dimension = "<<n<<std::endl;
     std::vector<NT> vec(n,0.0);
 
     Point xc(n);
 
     MT V = P.get_mat();
+    P.print();
     int k = V.rows();
     Point temp;
 
@@ -564,7 +572,8 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
         c_e(i)=xc[i];  // write chebychev center in an eigen vector
     }
     P.shift(c_e);
-
+    std::cout<<"radius of minim ball = "<<rad<<std::endl;
+    xc.print();
     //Point xc = Point(n);
     //std::vector<Ball> S0;
     vecBalls.push_back(Ball(Point(n), rad*rad));
@@ -588,9 +597,11 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
     ConvSet.push_back(Interballs(P.dimension(), vecBalls));
 }*/
 
-template <class T1, typename FT>
-void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, vars &var, FT &last_ratio, bool &done){
+template <class Polytope, class Interballs, class Ball,  typename FT, class Parameters>
+void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, Parameters &var, FT &last_ratio, bool &done){
 
+    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n;
     bool print = var.verbose;
     if (print) std::cout<<"computation of "<<ConvSet.size()+1<<" encosing convex body started...\n"<<std::endl;
@@ -612,7 +623,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
     if (ConvSet.size() ==1) {
         rad = vecBalls[0].radius();
         for (int i = 0; i < 1200; ++i) {
-            randPoints.push_back(get_point_in_Dsphere(n, rad));
+            randPoints.push_back(get_point_in_Dsphere<RNGType ,Point >(n, rad));
         }
     } else {
         rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var);
@@ -644,7 +655,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
             //index.assign(1200,-1);
             if (print) std::cout<<"q_bef  is in: "<<Si.is_in(q)<<std::endl;
             if (ConvSet.size() ==1 && Si.num_of_balls()==1) {
-                q = get_point_in_Dsphere(n, rad);
+                q = get_point_in_Dsphere<RNGType ,Point >(n, rad);
             } else {
                 rand_point(Si, q, var);
             }
@@ -659,7 +670,7 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
             if (!P.is_in(q)) {
                 totcount=0.0;
                 if (print) std::cout<<"construct ball"<<std::endl;
-                ball_iter = construct_ball(P, q, cent, qbound, direction, var);
+                ball_iter = construct_ball<Ball>(P, q, cent, qbound, direction, var);
                 if (print) std::cout<<"ball constructed"<<std::endl;
                 listIter2 = randPoints;
                 pit = listIter2.begin();
@@ -761,11 +772,13 @@ void get_next_convex(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> 
 }
 
 
-template <class T1, typename FT>
-void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, FT &last_ratio, vars &var) {
+template <class Polytope, class Interballs, class Ball, typename NT, class Parameters>
+void get_ball_schedule(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, NT a, NT &last_ratio, Parameters &var) {
 
     int n = var.n;
-    typedef BallIntersectPolytope<T1,NT>        BallPoly;
+    typedef BallIntersectPolytope<Polytope, NT>        BallPoly;
+    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Parameters::RNGType RNGType;
     bool print = var.verbose;
     //var.walk_steps=11;
     if (print) std::cout<<"computing first convex enclosing body...(minimum enclosing ball)\n"<<std::endl;
@@ -777,7 +790,7 @@ void get_ball_schedule(T1 &P, std::vector<Interballs> &ConvSet, std::vector<Ball
     if (print) std::cout<<"center = ";
     if (print) vecBalls[0].center().print();
     if (print) std::cout<<"radius = "<<vecBalls[0].radius()<<std::endl;
-    Point p = get_point_in_Dsphere(n, vecBalls[0].radius());
+    Point p = get_point_in_Dsphere<RNGType , Point>(n, vecBalls[0].radius());
     if (print) std::cout<<"checking if first enclosing body is the last as well..\n"<<std::endl;
     if (is_last_conv(P, ConvSet[0], a, var, last_ratio, true)) {
         if (print) std::cout<<"firsti is last as well\n"<<std::endl;

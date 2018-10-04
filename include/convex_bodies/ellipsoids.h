@@ -13,6 +13,44 @@
 
 #include <iostream>
 
+
+template <class Point>
+class copula_ellipsoid{
+private:
+    typedef typename Point::FT NT;
+    typedef typename std::vector<NT>::iterator viterator;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    MT G;
+    unsigned int dim;
+public:
+
+    copula_ellipsoid() {}
+
+    copula_ellipsoid(std::vector<std::vector<NT> > Gin) {
+        dim = Gin.size();
+        G.resize(dim, dim);
+        for (unsigned int i = 0; i < Gin.size(); i++) {
+            for (unsigned int j = 0; j < Gin.size(); j++) {
+                G(i,j) = Gin[i][j];
+            }
+        }
+    }
+
+    NT mat_mult(Point p) {
+        VT q(dim);
+        unsigned int i = 0;
+        viterator pit = p.iter_begin();
+        for ( ; pit!=p.iter_end(); ++pit, ++i){
+            q(i)=(*pit);
+        }
+        return q.transpose()*G*q;
+    }
+
+};
+
+
+/* developing part
 // ellipsoid class
 template <typename K>
 class Ellipsoid{
@@ -47,11 +85,18 @@ public:
     }
     
     void print() {
+        #ifdef VOLESTI_DEBUG
         std::cout<<" "<<C.size()<<" "<<d+1<<" float"<<std::endl;
+        #endif
         for(typename stdMatrix::iterator mit=C.begin(); mit<C.end(); ++mit){
-            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
+            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit){
+                #ifdef VOLESTI_DEBUG
                 std::cout<<*lit<<" ";
+                #endif
+            }
+            #ifdef VOLESTI_DEBUG
             std::cout<<std::endl;
+            #endif
         }
     }
     
@@ -134,6 +179,6 @@ public:
 
     }
     
-};
+}; */
 
 #endif

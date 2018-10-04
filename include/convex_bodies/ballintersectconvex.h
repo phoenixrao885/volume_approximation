@@ -11,13 +11,14 @@
 #define BALLINTERSECTCONVEX_H
 
 // ball type
+template <class Point>
 struct Ball{
 public:
-
+    typedef Point BallPoint;
+    typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
 
     Ball() {}
-
 
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
@@ -89,16 +90,20 @@ private:
 };
 
 
-template <class T, typename FT>
+template <class Polytope, class CBall>
 class BallIntersectPolytope {
+private:
+    Polytope    _P;
+    CBall _B;
 public:
-    typedef T Polytope;
+    typedef typename CBall::NT NT;
+    typedef typename CBall::BallPoint Point;
     typedef typename Polytope::VT VT;
 
-    BallIntersectPolytope(T &P, Ball &B) : _P(P), _B(B) {};
+    BallIntersectPolytope(Polytope &P, CBall &B) : _P(P), _B(B) {};
     
-    T first() { return _P; }
-    Ball second() { return _B; }
+    Polytope first() { return _P; }
+    CBall second() { return _B; }
     
     int is_in(Point p) {
         if (_B.is_in(p) == -1)
@@ -110,7 +115,7 @@ public:
         return _P.num_of_hyperplanes();
     }
 
-    int dimension(){
+    unsigned int dimension(){
         return _P.dimension();
     }
 
@@ -118,51 +123,47 @@ public:
         _P.add_facet(coeffs, constant);
     }
 
-    std::pair<FT,FT> line_intersect(Point r,
+    std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
 
-        std::pair <FT, FT> polypair = _P.line_intersect(r, v);
-        std::pair <FT, FT> ballpair = _B.line_intersect(r, v);
-        return std::pair<FT, FT>(std::min(polypair.first, ballpair.first),
+        std::pair <NT, NT> polypair = _P.line_intersect(r, v);
+        std::pair <NT, NT> ballpair = _B.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
 
     //First coordinate ray shooting intersecting convex body
-    std::pair<FT,FT> line_intersect_coord(Point &r,
-                                          int rand_coord,
-                                          std::vector<FT> &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int rand_coord,
+                                          std::vector<NT> &lamdas) {
 
-        std::pair <FT, FT> polypair = _P.line_intersect_coord(r, rand_coord, lamdas);
-        std::pair <FT, FT> ballpair = _B.line_intersect_coord(r, rand_coord);
-        return std::pair<FT, FT>(std::min(polypair.first, ballpair.first),
+        std::pair <NT, NT> polypair = _P.line_intersect_coord(r, rand_coord, lamdas);
+        std::pair <NT, NT> ballpair = _B.line_intersect_coord(r, rand_coord);
+        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
 
     //Not the first coordinate ray shooting intersecting convex body
-    std::pair<FT,FT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
-                                          int rand_coord,
-                                          int rand_coord_prev,
-                                          std::vector<FT> &lamdas) {
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
+                                          std::vector<NT> &lamdas) {
 
-        std::pair <FT, FT> polypair = _P.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
-        std::pair <FT, FT> ballpair = _B.line_intersect_coord(r, rand_coord);
-        return std::pair<FT, FT>(std::min(polypair.first, ballpair.first),
+        std::pair <NT, NT> polypair = _P.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
+        std::pair <NT, NT> ballpair = _B.line_intersect_coord(r, rand_coord);
+        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<FT,FT> query_dual(Point &p, int rand_coord) {
-        std::pair <FT, FT> polypair = _P.query_dual(p, rand_coord);
-        std::pair <FT, FT> ballpair = _B.line_intersect_coord(p, rand_coord);
-        return std::pair<FT, FT>(std::min(polypair.first, ballpair.first),
+    std::pair<NT,NT> query_dual(Point &p, unsigned int rand_coord) {
+        std::pair <NT, NT> polypair = _P.query_dual(p, rand_coord);
+        std::pair <NT, NT> ballpair = _B.line_intersect_coord(p, rand_coord);
+        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
-    
-private:
-    T    _P;
-    Ball _B;
+
 };
-
 
 template <class Point, class VT>
 class Halfspace {
@@ -240,16 +241,21 @@ public:
 
 
 // Convex body defined as an intersection of balls
-template <typename FT>
+template <class CBall, typename FT>
 class IntersectionOfBalls {
 private:
-    std::vector<Ball> balls;
+    std::vector<CBall> balls;
     int _d;
 public:
+    typedef CBall cball;
+    typedef typename CBall::BallPoint Point;
+    typedef FT NT;
+    FT maxNT = 1.79769e+308;
+    FT minNT = -1.79769e+308;
 
     IntersectionOfBalls (int dim) : _d(dim) {}
 
-    IntersectionOfBalls (int dim, std::vector<Ball> vecballs) : _d(dim), balls(vecballs) {};
+    IntersectionOfBalls (int dim, std::vector<CBall> vecballs) : _d(dim), balls(vecballs) {};
 
     int dimension() {
         return _d;
@@ -263,16 +269,16 @@ public:
         return balls.size();
     }
 
-    void add_ball (Ball B) {
+    void add_ball (CBall B) {
         balls.push_back(B);
     }
 
-    Ball get_ball (int const i) {
+    CBall get_ball (int const i) {
         return balls[i];
     }
 
     int is_in(Point p) {
-        typename std::vector<Ball>::iterator itB = balls.begin();
+        typename std::vector<CBall>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             if ((*itB).is_in(p)==0) {
                 return 0;
@@ -285,7 +291,7 @@ public:
                                     Point v) {
         FT min_plus = FT(maxNT), max_minus = FT(minNT);
         std::pair <FT, FT> ballpair;
-        typename std::vector<Ball>::iterator itB = balls.begin();
+        typename std::vector<CBall>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect(r, v);
             if (ballpair.first < min_plus) min_plus = ballpair.first;
@@ -304,7 +310,7 @@ public:
         //std::cout<<"rand_coord = "<<rand_coord<<std::endl;
         //r.print();
         //std::cout<<"point in convex body: "<<is_in(r)<<std::endl;
-        typename std::vector<Ball>::iterator itB = balls.begin();
+        typename std::vector<CBall>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
             if (ballpair.first < min_plus) min_plus = ballpair.first;
@@ -325,7 +331,7 @@ public:
         //r.print();
         //std::cout<<"point in convex body: "<<is_in(r)<<std::endl;
 
-        typename std::vector<Ball>::iterator itB = balls.begin();
+        typename std::vector<CBall>::iterator itB = balls.begin();
         for ( ; itB!=balls.end(); itB++) {
             std::pair <FT, FT> ballpair = (*itB).line_intersect_coord(r, rand_coord);
             //std::cout<<"CNV min_plus = "<<ballpair.first<<" CNV max_minus = "<<ballpair.second<<std::endl;
@@ -339,6 +345,7 @@ public:
 };
 
 
+/* EXPERIMENTAL
 template <class T1 , class T2>
 class PolytopeIntersectEllipsoid {
 private:
@@ -492,6 +499,6 @@ public:
     
     
     
-};
+};*/
 
 #endif

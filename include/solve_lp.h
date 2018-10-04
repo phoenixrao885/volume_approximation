@@ -23,17 +23,24 @@
 #define SOLVE_LP_H
 
 #include <stdio.h>
+#include <cmath>
 #include <exception>
-#include "run_headers/lp_lib.h"
+#undef Realloc
+#undef Free
+#include "lp_lib.h"
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
-template <class MT, class VT>
-std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
+template <typename NT, class Point, class MT, class VT>
+std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 
     lprec *lp;
-    int Ncol=d+1, *colno = NULL, j, m=A.rows(), i;
+    int d = A.cols();
+    int Ncol=d+1, j, m=A.rows(), i;
+    int *colno = NULL;
+
     REAL *row = NULL;
+    std::pair<Point,NT> exception_pair(Point(1),-1.0);
 
     try
     {
@@ -41,7 +48,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct Linear Program for chebychev center "<<e<<std::endl;
+        #endif
+        return exception_pair;
     }
     
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
@@ -54,7 +64,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
     }
     catch (std::exception &e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Linear Program for chebychev center failed "<<e.what()<<std::endl;
+        #endif
+        return exception_pair;
     }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
@@ -77,7 +90,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
         }
         catch (bool e)
         {
+            #ifdef VOLESTI_DEBUG
             std::cout<<"Could not define constriants for the Linear Program for chebychev center "<<e<<std::endl;
+            #endif
+            return exception_pair;
         }
     }
 
@@ -98,7 +114,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not define objective function for the Linear Program for chebychev center "<<e<<std::endl;
+        #endif
+        return exception_pair;
     }
 
     /* set the object direction to maximize */
@@ -114,7 +133,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not solve the Linear Program for chebychev center "<<e<<std::endl;
+        #endif
+        return exception_pair;
     }
 
     std::pair<Point,NT> res;
@@ -135,9 +157,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
 
 // return true if q belongs to the convex hull of the V-polytope described by matrix V
 // otherwise return false
-template <class MT>
+template <class MT, class Point>
 bool memLP_Vpoly(MT V, Point q){
 
+    typedef typename Point::FT NT;
     int d=q.dimension();
     lprec *lp;
     int Ncol=d+1, *colno = NULL, j, i, m=V.rows();
@@ -150,7 +173,10 @@ bool memLP_Vpoly(MT V, Point q){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+        #endif
+        return false;
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
@@ -162,7 +188,10 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (std::exception &e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+        #endif
+        return false;
     }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
@@ -175,7 +204,6 @@ bool memLP_Vpoly(MT V, Point q){
         }
         colno[d] = d+1;
         row[d] = -1.0;
-        //set_bounds(lp, d, 0.0, infinite);
 
         /* add the row to lpsolve */
         try {
@@ -183,7 +211,10 @@ bool memLP_Vpoly(MT V, Point q){
         }
         catch (bool e)
         {
+            #ifdef VOLESTI_DEBUG
             std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+            #endif
+            return false;
         }
     }
     for(j=0; j<d; j++){
@@ -199,7 +230,10 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+        #endif
+        return false;
     }
 
     //set the bounds
@@ -222,7 +256,10 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+        #endif
+        return false;
     }
 
     /* set the object direction to maximize */
@@ -238,7 +275,10 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not solve the Linear Program for memebrship "<<e<<std::endl;
+        #endif
+        return false;
     }
 
     NT r = NT(get_objective(lp));
@@ -250,8 +290,8 @@ bool memLP_Vpoly(MT V, Point q){
 }
 
 
-template <class MT, typename FT>
-bool get_separeting_hyp(MT V, Point q, std::vector<FT> &hyp){
+template <class Point, class MT, typename NT>
+bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
 
     int d=q.dimension();
     lprec *lp;
@@ -372,26 +412,34 @@ bool get_separeting_hyp(MT V, Point q, std::vector<FT> &hyp){
 
 
 // compute the intersection of a ray with a V-polytope
-// if maxi is true compute positive lambda, when the ray is p + lambda \codt v
+// if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
-template <class MT>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
+template <typename NT, class MT, class Point>
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
     int m=V.rows();
     m++;
-    int Ncol=m, *colno = NULL, j;
+    int Ncol=m, *colno = NULL, j, Nrows;
     REAL *row = NULL;
     NT res;
+    if(!zonotope) {
+        Nrows = d+1;
+    } else {
+        Nrows = d;
+    }
 
     try
     {
-        lp = make_lp(m, Ncol);
+        lp = make_lp(Nrows, Ncol);
         if(lp == NULL) throw false;
     }
     catch (bool e) {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
+        #endif
+        return -1.0;
     }
 
 	REAL infinite = get_infinite(lp); /* will return 1.0e30 */
@@ -403,7 +451,10 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     }
     catch (std::exception &e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
+        #endif
+        return -1.0;
     }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
@@ -423,25 +474,32 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
         }
         catch (bool e)
         {
+            #ifdef VOLESTI_DEBUG
             std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
+            #endif
+            return -1.0;
         }
 
     }
 
-    for(j=0; j<m-1; j++){
-        colno[j] = j+1; /* j_th column */
-        row[j] = 1.0;
-    }
-    colno[m-1] = m; /* last column */
-    row[m-1] = 0.0;
+    if(!zonotope) {
+        for (j = 0; j < m - 1; j++) {
+            colno[j] = j + 1; /* j_th column */
+            row[j] = 1.0;
+        }
+        colno[m - 1] = m; /* last column */
+        row[m - 1] = 0.0;
 
-    /* add the row to lpsolve */
-    try {
-        if(!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
-    }
-    catch (bool e)
-    {
-        std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
+        /* add the row to lpsolve */
+        try {
+            if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
+        }
+        catch (bool e) {
+            #ifdef VOLESTI_DEBUG
+            std::cout << "Could not construct constaints for the Linear Program for ray-shooting " << e << std::endl;
+            #endif
+            return -1.0;
+        }
     }
 
     //set the bounds
@@ -450,6 +508,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     // set the objective function
     for(j=0; j<m-1; j++){
         colno[j] = j+1; /* j_th column */
+        set_bounds(lp, j+1, 0.0, 1.0);
         row[j] = 0;
     }
     colno[m - 1] =m; /* last column */
@@ -463,7 +522,10 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
+        #endif
+        return -1.0;
     }
 
     if(maxi) {  /* set the object direction to maximize */
@@ -480,12 +542,112 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     }
     catch (bool e)
     {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Could not solve the Linear Program for ray-shooting "<<e<<std::endl;
+        #endif
+        return -1.0;
     }
 
     res = NT(-get_objective(lp));
     delete_lp(lp);
     return res;
+}
+
+
+template <class MT, class Point>
+bool memLP_Zonotope(MT V, Point q){
+
+    //typedef typename Point::FT NT;
+    int d=q.dimension();
+    lprec *lp;
+    int Ncol=V.rows(), *colno = NULL, j, i;
+    REAL *row = NULL;
+
+    try
+    {
+        lp = make_lp(d, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+        #ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+        #endif
+        return false;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+        #ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+        #endif
+        return false;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    for (i = 0;  i< d; ++i) {
+        /* construct all rows */
+        for(j=0; j<Ncol; j++){
+            colno[j] = j+1;
+            row[j] = V(j,i);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, Ncol, row, colno, EQ, q[i])) throw false;
+        }
+        catch (bool e)
+        {
+            #ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+            #endif
+            return false;
+        }
+    }
+
+    //set the bounds
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the bounds
+    for(j=0; j<Ncol; j++){
+        colno[j] = j+1; /* j_th column */
+        row[j] = 0.0;
+        set_bounds(lp, j+1, 0.0, 1.0);
+    }
+
+    // set the objective function
+    try
+    {
+        if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+        #ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+        #endif
+        return false;
+    }
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+        delete_lp(lp);
+        return false;
+    }
+    delete_lp(lp);
+    return true;
 }
 
 #endif

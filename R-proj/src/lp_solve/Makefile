@@ -20,7 +20,6 @@ liblp_solve.a: $(LP_SOLVE_OBJECTS)
 	$(CC) $(CFLAGS) $(CPICFLAGS) $(LP_SOLVE_CPPFLAGS) -c $< -o $@
 
 clean:
-	#rm -rf $(LP_SOLVE_OBJECTS) liblp_solve.a
-	rm -f *.o
+	rm -rf $(LP_SOLVE_OBJECTS) liblp_solve.a
 
 
