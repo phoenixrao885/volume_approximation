@@ -200,7 +200,8 @@ Ball construct_ball(Polytope &P, Point q, Point &cent, Point &qbound, Point &dir
     std::cout<<"find first ball\n";
     std::vector<NT> hyp(n,0);
     std::cout<<"sep hyp: ";
-    get_separeting_hyp(P.get_mat(), q, hyp);
+    NT zz00;
+    get_separeting_hyp(P.get_mat(), q, hyp, zz00);
     std::cout<<" => ";
     for (int i = 0; i < n; ++i) {
         std::cout<<hyp[i]<<" ";

@@ -346,6 +346,7 @@ int main(const int argc, const char** argv)
       return 0;
   }
 
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -516,7 +517,15 @@ int main(const int argc, const char** argv)
 
               } else {
                   //vol = volume(VP, var, var, InnerBall);
+
                   typedef Ball<Point> Ball;
+                  //NT epsilon = 0.9;
+                  //Hpolytope HP2 = facet_enumeration<Hpolytope , Ball>(VP, epsilon, var);
+                  //InnerBall = HP2.ComputeInnerBall();
+                  //vol = volume(HP2, var, var, InnerBall);
+                  //std::cout<<"number of facets = "<<HP2.num_of_hyperplanes()<<std::endl;
+                  //std::cout<<"vol = "<<vol<<std::endl;
+                  //return 1;
                   vol = Vpoly_volume<Ball, NT>(VP, var);
                   NT ext = 1.0/factorial(n);
                   std::cout<<"exact volume = "<<ext<<std::endl;

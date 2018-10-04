@@ -291,7 +291,7 @@ bool memLP_Vpoly(MT V, Point q){
 
 
 template <class Point, class MT, typename NT>
-bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
+bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp, NT &z0){
 
     int d=q.dimension();
     lprec *lp;
@@ -305,7 +305,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+        std::cout<<"Could not construct Linear Program for separating hyp  "<<e<<std::endl;
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
@@ -317,7 +317,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
     }
     catch (std::exception &e)
     {
-        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+        std::cout<<"Linear Program for separating hyp failed "<<e.what()<<std::endl;
     }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
@@ -338,7 +338,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
         }
         catch (bool e)
         {
-            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+            std::cout<<"Could not construct constaints for the Linear Program for separating hyp "<<e<<std::endl;
         }
     }
     for(j=0; j<d; j++){
@@ -354,7 +354,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
     }
     catch (bool e)
     {
-        std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+        std::cout<<"Could not construct constaints for the Linear Program for separating hyp  "<<e<<std::endl;
     }
 
     //set the bounds
@@ -377,7 +377,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
     }
     catch (bool e)
     {
-        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+        std::cout<<"Could not construct objective function for the Linear Program for separating hyp "<<e<<std::endl;
     }
 
     /* set the object direction to maximize */
@@ -393,7 +393,7 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
     }
     catch (bool e)
     {
-        std::cout<<"Could not solve the Linear Program for memebrship "<<e<<std::endl;
+        std::cout<<"Could not solve the Linear Program for separating hyp "<<e<<std::endl;
     }
 
     NT r = NT(get_objective(lp));
@@ -402,7 +402,8 @@ bool get_separeting_hyp(MT V, Point q, std::vector<NT> &hyp){
         for(j = 0; j < d; j++){
             hyp[j]=NT(row[j]);
         }
-        std::cout<<row[d];
+        z0 = row[d];
+        //std::cout<<row[d];
         delete_lp(lp);
         return true;
     }

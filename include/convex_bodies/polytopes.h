@@ -130,11 +130,11 @@ public:
     }
 
     void add_facet(VT coeffs, NT constant) {
-        A.conservativeResize(A.rows()+1 , Eigen::NoChange);
+        A.conservativeResize(A.rows()+1 , A.cols());
         A.row(A.rows()-1) = coeffs;
 
         b.conservativeResize(b.size()+1);
-        b.row(b.size()-1) = constant;
+        b(b.size()-1) = constant;
     }
 
 
