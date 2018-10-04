@@ -252,12 +252,12 @@ bool check_t_test(std::vector<FT> ratios, FT a, FT p_test){
     FT p_mval = mv.first;
     FT p_varval = mv.second;
     int ni = ratios.size();
-    std::cout<<"mean = "<<mv.first<<" var = "<<mv.second<<std::endl;
+    //std::cout<<"mean = "<<mv.first<<" var = "<<mv.second<<std::endl;
     if(mv.first >=190.0/1200.0 && false) {
         return true;
     }
 
-    std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(FT(ni)))<<std::endl;
+    //std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(FT(ni)))<<std::endl;
     if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(FT(ni)))) {
         passed = true;
     }

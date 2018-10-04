@@ -23,6 +23,7 @@
 #define VOLESTI_DEBUG
 #include <fstream>
 #include "volume.h"
+#include "facet_enumeration.h"
 #include "sample_only.h"
 #include "exact_vols.h"
 

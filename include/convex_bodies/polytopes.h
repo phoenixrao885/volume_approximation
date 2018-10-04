@@ -34,7 +34,7 @@ private:
     NT minNT = -1.79769e+308;
 
 public:
-    HPolytope(int dim) {
+    HPolytope(unsigned int dim) {
         _d = dim;
         A.resize(0,_d);
         b.resize(0);
