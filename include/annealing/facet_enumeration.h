@@ -21,13 +21,13 @@
 #ifndef FACET_ENUMERATION_H
 #define FACET_ENUMERATION_H
 
-template <class Polytope, class Ball, class Parameters>
-void enclosing_ball(Polytope &P, Ball &B0, Parameters &var) {
+template <class Polytope, class Ball, class Point, class Parameters>
+void enclosing_ball(Polytope &P, Ball &B0, Point &center, Parameters &var) {
 
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename Polytope::NT NT;
-    typedef typename Polytope::PolytopePoint Point;
+    //typedef typename Polytope::PolytopePoint Point;
     unsigned int n = P.dimension();
     std::vector<NT> vec(n,0.0);
 
@@ -67,6 +67,7 @@ void enclosing_ball(Polytope &P, Ball &B0, Parameters &var) {
     P.shift(c_e);
     std::cout<<"radius of minim ball = "<<rad<<std::endl;
     xc.print();
+    center = Point(n) - xc;
     //Point xc = Point(n);
     //std::vector<Ball> S0;
     B0 = Ball(Point(n), rad*rad);
@@ -162,24 +163,125 @@ void add_facet(ConvexBody &K, HPolytope &HP, VPolytope &VP, Point &q){
     HP.add_facet(a,z0);
 }
 
-template <class ConvexBody, class HPolytope, class VPolytope, class Parameters>
-void construct_simplex(ConvexBody &K, HPolytope &HP, VPolytope &VP, Parameters &var){
+
+template <class ConvexBody, class VPolytope, class Point>
+void add_facet2(ConvexBody &K, VPolytope &VP, int & on_faces, Point &q){
+
+    typedef typename VPolytope::NT NT;
+    typedef typename VPolytope::VT VT;
+    typedef typename VPolytope::MT MT;
+
+    unsigned int n = VP.dimension(), i;
+    std::vector <NT> lambdas(VP.num_of_vertices());
+    NT z0 = 1.0;
+    //VT a(n);
+    Point center(n);
+    //std::vector <NT> hyp(n, 0);
+    Point v = q * (1.0 / std::sqrt(q.squared_length()));
+    NT min_plus = intersect_line_Vpoly2<NT>(VP.get_mat(), center, v, false, lambdas);
+    MT Mat = MT::Zero(n,n);
+    VT b = VT::Ones(n);
+    VT p(n);
+    MT V = VP.get_mat();
+    int count = 0;
+
+    for (int j = 0; j < VP.num_of_vertices(); ++j) {
+        if (lambdas[j] > 0.0) {
+            Mat.row(count) = V.row(j);
+            count++;
+        } else {
+            p = V.row(j);
+        }
+    }
+    if (count < n) {
+        on_faces++;
+        return;
+    }
+    VT a = Mat.colPivHouseholderQr().solve(b);
+    if (a.dot(p) > 1.0) {
+        a = -a;
+        z0 = -1.0;
+    }
+
+    K.add_facet(a, z0);
+}
+
+template <class ConvexBody, class HPolytope, class VPolytope, class Point>
+void add_facet2(ConvexBody &K, HPolytope &HP, VPolytope &VP, bool &added, Point &q) {
+
+    typedef typename VPolytope::NT NT;
+    typedef typename VPolytope::VT VT;
+    typedef typename VPolytope::MT MT;
+
+    unsigned int n = VP.dimension(), i;
+    std::vector <NT> lambdas(VP.num_of_vertices());
+    NT z0 = 1.0;
+    //VT a(n);
+    Point center(n);
+    //std::vector <NT> hyp(n, 0);
+    Point v = q * (1.0 / std::sqrt(q.squared_length()));
+    NT min_plus = intersect_line_Vpoly2<NT>(VP.get_mat(), center, v, false, lambdas);
+    MT Mat = MT::Zero(n,n);
+    VT b = VT::Ones(n);
+    VT p(n);
+    MT V = VP.get_mat();
+    int count = 0;
+
+    for (int j = 0; j < VP.num_of_vertices(); ++j) {
+        if (lambdas[j] > 0.0) {
+            Mat.row(count) = V.row(j);
+            count++;
+        } else {
+            p = V.row(j);
+        }
+    }
+    if(count<n){
+        //std::cout<<count<<std::endl;
+        return;
+    }
+    added = true;
+    VT a = Mat.colPivHouseholderQr().solve(b);
+    if (a.dot(p) > 1.0) {
+        a = -a;
+        z0 = -1.0;
+    }
+
+    K.add_facet(a, z0);
+    HP.add_facet(a, z0);
+}
+
+
+template <class ConvexBody, class HPolytope, class VPolytope, typename NT, class Parameters>
+void construct_simplex(ConvexBody &K, HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, int &on_faces, Parameters &var){
 
     typedef typename ConvexBody::VT VT;
-    typedef typename VPolytope::NT NT;
+    //typedef typename VPolytope::NT NT;
     typedef typename VPolytope::PolytopePoint Point;
     typedef typename Parameters::RNGType RNGType;
 
     unsigned int n = K.dimension(), i;
-    std::pair<VT, NT> halfspace;
+    //std::pair<VT, NT> halfspace;
     Point q(n);
+    int count, j = 0;
+    int thre = int(4.0/(1.0-epsilon));
+    bool added = false;
 
-
-    for (int j = 0; j < n+1; ++j) {
+    while(j<2*n*n) {
+    //for (int j = 0; j < 2*n; ++j) {
         q = Point(n);
+        count = 0;
 
         do{
-            std::cout<<K.num_of_hyperplanes()<<std::endl;
+            if (count>=thre) {
+                check_convergence(HP, VP, epsilon, done, var);
+                if (done){
+                    return;
+                } else {
+                    count=-1000;
+                }
+            }
+            count++;
+            //std::cout<<K.num_of_hyperplanes()<<std::endl;
             if (K.num_of_hyperplanes() == 0) {
                 q = get_point_in_Dsphere<RNGType, Point>(n, K.second().radius());
             } else {
@@ -187,29 +289,39 @@ void construct_simplex(ConvexBody &K, HPolytope &HP, VPolytope &VP, Parameters &
             }
         } while (VP.is_in(q)==-1);
 
-        add_facet(K, HP, VP, q);
+        add_facet2(K, HP, VP, added, q);
+        if (added) {
+            std::cout<<added<<std::endl;
+            added = false;
+            j++;
+        } else {
+            on_faces++;
+        }
+        //add_facet(K, HP, VP, q);
+        //j++;
 
     }
 
 };
 
 template <class HPolytope, class VPolytope, typename NT, class Parameters>
-void detect_facet(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, Parameters &var){
+void detect_facet(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, int &on_faces, Parameters &var){
 
     typedef typename HPolytope::VT VT;
     typedef typename VPolytope::PolytopePoint Point;
 
-    NT z0;
+    //NT z0;
     unsigned int n = HP.dimension(), i;
-    std::pair<VT, NT> halfspace;
+    //std::pair<VT, NT> halfspace;
     Point q(n);
-    VT a(n);
-    Point center(n);
-    std::vector<NT> hyp(n,0);
+    //VT a(n);
+    //Point center(n);
+    //std::vector<NT> hyp(n,0);
     int count = 0;
+    int thre = int(4.0/(1.0-epsilon));
 
     do{
-        if (count>=40) {
+        if (count>=thre) {
             check_convergence(HP, VP, epsilon, done, var);
             if (done){
                 return;
@@ -221,7 +333,7 @@ void detect_facet(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, Paramete
         rand_point(HP, q, var);
     } while (VP.is_in(q)==-1);
 
-    add_facet(HP, VP, q);
+    add_facet2(HP, VP, on_faces, q);
     std::cout<<"number of facets = "<<HP.num_of_hyperplanes()<<std::endl;
 
 };
@@ -232,21 +344,37 @@ HPolytope facet_enumeration(VPolytope &VP, NT &epsilon, Parameters &var) {
 
     typedef BallIntersectPolytope<HPolytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
+    typedef typename VPolytope::PolytopePoint Point;
+    typedef typename VPolytope::VT VT;
 
     unsigned int n = var.n;
     HPolytope HP(n);
+    Point center(n);
     bool done = false, check = false;
+    int on_faces = 0;
     Ball B0;
-    enclosing_ball(VP, B0 ,var);
+    enclosing_ball(VP, B0, center, var);
     BallPoly BP(HP, B0);
-    construct_simplex(BP, HP, VP, var);
-
-    std::cout<<"nuber of facets after simplex = "<<HP.num_of_hyperplanes()<<std::endl;
-    while (!done) {
-        detect_facet(HP, VP, epsilon, done, var);
+    construct_simplex(BP, HP, VP, epsilon, done, on_faces, var);
+    if(done) {
+        done = false;
     }
 
-    std::cout<<"nuber of facets after simplex = "<<BP.num_of_hyperplanes()<<std::endl;
+    std::cout<<"number of facets after simplex = "<<HP.num_of_hyperplanes()<<std::endl;
+    while (!done) {
+        detect_facet(HP, VP, epsilon, done, on_faces, var);
+    }
+
+    //std::cout<<"nuber of facets after simplex = "<<BP.num_of_hyperplanes()<<std::endl;
+
+    center.print();
+    VT c_e(n);
+    for (int i = 0; i < n; ++i) {
+        c_e(i) = center[i];
+    }
+    HP.shift(c_e);
+    HP.normalization();
+    std::cout<<"on faces = "<<on_faces<<std::endl;
     HP.print();
     return HP;
 

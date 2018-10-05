@@ -137,6 +137,15 @@ public:
         b(b.size()-1) = constant;
     }
 
+    void normalization() {
+        int m = A.rows();
+
+        for (int i = 0; i < m; ++i) {
+            b(i) = b(i) / A.row(i).norm();
+            A.row(i) = A.row(i) / A.row(i).norm();
+        }
+        //b(i) / A.row(i).norm();
+    }
 
     void init(unsigned int dim, MT _A, VT _b) {
         _d = dim;
@@ -194,7 +203,7 @@ public:
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 #ifdef VOLESTI_DEBUG
-                std::cout << -A(i, j) << " ";
+                std::cout << A(i, j) << " ";
                 #endif
             }
             #ifdef VOLESTI_DEBUG
