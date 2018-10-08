@@ -175,43 +175,63 @@ void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Poin
 
 
 template <class Ball, class Polytope, class Point, class Parameters>
-Ball construct_ball(Polytope &P, Point q, Point &cent, Point &qbound, Point &direction,  Parameters &var) {
+Ball construct_ball(Polytope &P, Point q, Point &cent, Point &qbound, Point &direction, Parameters &var) {
 
     int n = var.n;
     typedef typename Polytope::NT NT;
-    Point center(n);
-    std::cout<<P.is_in(center)<<std::endl;
+    typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
+    Point center(n), c0(n);
+    Point center2(n);
+    Point temp(n);
+    std::vector <NT> lambdas(P.num_of_vertices());
+    //std::cout<<P.is_in(center)<<std::endl;
     Point v = q * (1.0 / std::sqrt(q.squared_length()));
-    std::cout<<"v = ";
-    v.print();
-    NT min_plus = intersect_line_Vpoly<NT>(P.get_mat(), center, v, false, false);
-    std::cout<<"min_plus = "<<min_plus<<std::endl;
-    q.print();
-    q = v * (min_plus + 0.0001);
-    std::cout<<"q = ";
-    q.print();
-    qbound = q;
-    //std::cout<<"q is in P = "<<P.is_in(q);
-    //bool isin = false;
-    Point c0(n);
-    NT const tol = 0.000001;
+    MT Mat = MT::Zero(n,n);
+    VT b = VT::Ones(n);
+    VT p(n);
+    MT V = P.get_mat();
+    int count = 0;
+    NT z0;
+    bool added = false;
+    NT min_plus;
+    while(!added) {
+        min_plus = intersect_line_Vpoly2<NT>(P.get_mat(), center2, v, false, lambdas);
 
-    // find the first ball that contains v-polytope P
-    std::cout<<"find first ball\n";
-    std::vector<NT> hyp(n,0);
-    std::cout<<"sep hyp: ";
-    NT zz00;
-    get_separeting_hyp(P.get_mat(), q, hyp, zz00);
-    std::cout<<" => ";
-    for (int i = 0; i < n; ++i) {
-        std::cout<<hyp[i]<<" ";
+
+        for (int j = 0; j < P.num_of_vertices(); ++j) {
+            if (lambdas[j] > 0.0) {
+                Mat.row(count) = V.row(j);
+                count++;
+            } else {
+                p = V.row(j);
+            }
+        }
+        if (count == n) {
+            std::cout<<count<<std::endl;
+            added = true;
+        } else {
+            std::cout<<count<<std::endl;
+        }
     }
-    std::cout<<"\n";
-    Point temp(n, hyp.begin(), hyp.end());
+    VT a = Mat.colPivHouseholderQr().solve(b);
+    if (a.dot(p) > 1.0) {
+        a = -a;
+        z0 = -1.0;
+    }
+
+    q = v * (min_plus + 0.0001);
+    qbound = q;
+    typename std::vector<NT>::iterator tempit = temp.iter_begin();
+    int i = 0;
+    for ( ; tempit!=temp.iter_end(); ++tempit, ++i) {
+        *tempit = a(i);
+    }
     direction = temp;
     temp = temp * (1.0 / std::sqrt(temp.squared_length()));
     temp = temp * (min_plus * 50.0);
     int counter = 0;
+    NT const tol = 0.000001;
     //temp = q;
     while (true) {
         counter++;
@@ -700,7 +720,8 @@ void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<
                         std::cout<<"\nADD CONVEX No. "<<ConvSet.size()<<std::endl;
                         return;
                     }
-                    reconstruct_ball(P, randPoints, S, Si, cent, qbound, direction, a, ConvSet, last_ball, last_conv, last_ratio, var);
+                    reconstruct_ball(P, randPoints, S, Si, cent, qbound, direction, a,
+                                     ConvSet, last_ball, last_conv, last_ratio, var);
                     if (last_conv){
                         done = true;
                         return;

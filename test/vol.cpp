@@ -351,6 +351,42 @@ int main(const int argc, const char** argv)
       return 0;
   }
 
+    /* RANDOM NUMBERS */
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0,1);
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1(-1,1);
+
+    if(!user_walk_len) {
+        if(!annealing) {
+            walk_len = 10 + n / 10;
+        }else{
+            walk_len = 1;
+        }
+    }
+    if(!user_N)
+        N = 500 * ((int) C) + ((int) (n * n / 2));
+    if(!user_ratio)
+        ratio = 1.0-1.0/(NT(n));
+    if(!user_W)
+        W = 4*n*n+500;
+
+
+    if (facet_enum) {
+        typedef Ball <Point> Ball;
+        vars <NT, RNGType> var(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, 0.1, rng,
+                               urdist, urdist1, delta, verbose, rand_only, round, NN, birk,
+                               ball_walk, coordinate);
+        double tstart22 = (double)clock()/(double)CLOCKS_PER_SEC;
+        Hpolytope HP2 = facet_enumeration<Hpolytope, Ball>(VP, e, var);
+        double tstop22 = (double)clock()/(double)CLOCKS_PER_SEC;
+        if(verbose) std::cout << "facet enumeration time: " << tstop22 - tstart22 << std::endl;
+        if(verbose) std::cout << "number of facets computed:" << HP2.num_of_hyperplanes() << std::endl;
+        return 1;
+    }
+
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -373,19 +409,6 @@ int main(const int argc, const char** argv)
   
   // Set the number of random walk steps
 
-  if(!user_walk_len) {
-      if(!annealing) {
-          walk_len = 10 + n / 10;
-      }else{
-          walk_len = 1;
-      }
-  }
-  if(!user_N)
-      N = 500 * ((int) C) + ((int) (n * n / 2));
-  if(!user_ratio)
-      ratio = 1.0-1.0/(NT(n));
-  if(!user_W)
-      W = 4*n*n+500;
 
 
   // Timings
@@ -399,25 +422,9 @@ int main(const int argc, const char** argv)
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
-   /* RANDOM NUMBERS */
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  RNGType rng(seed);
-  boost::normal_distribution<> rdist(0,1);
-  boost::random::uniform_real_distribution<>(urdist);
-  boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-  if (facet_enum) {
-      typedef Ball <Point> Ball;
-      vars <NT, RNGType> var(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
-                              urdist, urdist1, delta, verbose, rand_only, round, NN, birk,
-                              ball_walk, coordinate);
-      double tstart22 = (double)clock()/(double)CLOCKS_PER_SEC;
-      Hpolytope HP2 = facet_enumeration<Hpolytope, Ball>(VP, e, var);
-      double tstop22 = (double)clock()/(double)CLOCKS_PER_SEC;
-      if(verbose) std::cout << "facet enumeration time: " << tstop22 - tstart22 << std::endl;
-      if(verbose) std::cout << "number of facets computed:" << HP2.num_of_hyperplanes() << std::endl;
-      return 1;
-  }
+
+
 
   // If no file specified construct a default polytope
   if(!file){

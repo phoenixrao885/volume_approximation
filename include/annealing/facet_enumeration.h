@@ -34,7 +34,7 @@ void enclosing_ball(Polytope &P, Ball &B0, Point &center, Parameters &var) {
     Point xc(n);
 
     MT V = P.get_mat();
-    P.print();
+    //P.print();
     int k = V.rows();
     Point temp;
 
@@ -82,13 +82,15 @@ void check_convergence(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, Par
     typedef typename VPolytope::PolytopePoint Point;
 
 
-    int M = 1200;
+    int M = 100000;
     int ni = 10;
     int Mni = 120;
     int n = var.n;
     NT a = 0.05;
     std::list<Point> randPoints;
     Point p(n);
+    Parameters var2 = var;
+    var2.coordinate=true;
 
     rand_point_generator(HP, p, M, var.walk_steps, randPoints, var);
 
@@ -100,9 +102,9 @@ void check_convergence(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, Par
         if (VP.is_in(*pit)) {
             countsIn += 1.0;
         }
-        if (i % 120 == 0) {
-            std::cout<<"conv2conv ratio = "<<countsIn/120.0<<std::endl;
-            ratios.push_back(countsIn/120.0);
+        if (i % 10000 == 0) {
+            std::cout<<"conv2conv ratio = "<<countsIn/10000.0<<std::endl;
+            ratios.push_back(countsIn/10000.0);
             countsIn = 0.0;
         }
     }
@@ -266,7 +268,7 @@ void construct_simplex(ConvexBody &K, HPolytope &HP, VPolytope &VP, NT epsilon, 
     int thre = int(4.0/(1.0-epsilon));
     bool added = false;
 
-    while(j<2*n*n) {
+    while(j<2*n) {
     //for (int j = 0; j < 2*n; ++j) {
         q = Point(n);
         count = 0;
@@ -318,7 +320,7 @@ void detect_facet(HPolytope &HP, VPolytope &VP, NT epsilon, bool &done, int &on_
     //Point center(n);
     //std::vector<NT> hyp(n,0);
     int count = 0;
-    int thre = int(4.0/(1.0-epsilon));
+    int thre = int(1.0/(1.0-epsilon));
 
     do{
         if (count>=thre) {
@@ -353,7 +355,17 @@ HPolytope facet_enumeration(VPolytope &VP, NT &epsilon, Parameters &var) {
     bool done = false, check = false;
     int on_faces = 0;
     Ball B0;
+    std::pair<NT,NT> round_val;
     enclosing_ball(VP, B0, center, var);
+    std::pair<Point,NT> InnerBall;
+    InnerBall.first = Point(n);
+    InnerBall.second = 1.0;
+    if (var.round) {
+        std::cout<<"rounding started!"<<std::endl;
+        round_val = rounding_min_ellipsoid(VP,InnerBall,var);
+        enclosing_ball(VP, B0, center, var);
+    }
+
     BallPoly BP(HP, B0);
     construct_simplex(BP, HP, VP, epsilon, done, on_faces, var);
     if(done) {
@@ -375,7 +387,7 @@ HPolytope facet_enumeration(VPolytope &VP, NT &epsilon, Parameters &var) {
     HP.shift(c_e);
     HP.normalization();
     std::cout<<"on faces = "<<on_faces<<std::endl;
-    HP.print();
+    //HP.print();
     return HP;
 
 };

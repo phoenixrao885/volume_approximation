@@ -65,6 +65,7 @@ NT Vpoly_volume (Polytope &P, Parameters var) {
     std::vector<NT> ratios(mm,0);
     //var.walk_steps=1;
     var.walk_steps = 10+n/10;
+    var.coordinate=true;
 
     NT error = 0.1, curr_eps;
     curr_eps = error/std::sqrt((NT(mm)));
