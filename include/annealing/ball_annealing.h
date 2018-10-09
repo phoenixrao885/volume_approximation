@@ -626,7 +626,7 @@ void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<
     int n = var.n;
     bool print = var.verbose;
     if (print) std::cout<<"computation of "<<ConvSet.size()+1<<" encosing convex body started...\n"<<std::endl;
-    Interballs Si = ConvSet[ConvSet.size()-1];
+    Interballs Si = ConvSSi, VP, PolyBallSet, randPoints, added_in_set, varet[ConvSet.size()-1];
     if (print) std::cout<<"last convex body has = "<<Si.num_of_balls()<<" balls"<<std::endl;
     std::list<Point> randPoints;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
@@ -795,7 +795,8 @@ void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<
 
 
 template <class Polytope, class Interballs, class Ball, typename NT, class Parameters>
-void get_ball_schedule(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, NT a, NT &last_ratio, Parameters &var) {
+void get_ball_schedule(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls,
+                       NT a, NT &last_ratio, Parameters &var) {
 
     int n = var.n;
     typedef BallIntersectPolytope<Polytope, NT>        BallPoly;

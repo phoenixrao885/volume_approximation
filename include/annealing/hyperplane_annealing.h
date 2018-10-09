@@ -21,12 +21,81 @@
 #ifndef HYPERPLANE_ANNEALING_H
 #define HYPERPLANE_ANNEALING_H
 
+template <class HPolyBall, class VPolytope, class PointList, class Point, class Parameters>
+void construct_new_hyp(HPolyBall Si, VPolytope VP, std::vector<HPolyBall> PolyBallSet,
+                       PointList &randPoints, Point &q, bool &added_in_set, Parameters var){
+
+    int n = var.n;
+    typedef typename Polytope::NT NT;
+    typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
+    Point center(n), c0(n);
+    Point center2(n);
+    Point temp(n);
+    std::vector <NT> lambdas(P.num_of_vertices());
+    //std::cout<<P.is_in(center)<<std::endl;
+    Point v = q * (1.0 / std::sqrt(q.squared_length()));
+    MT Mat = MT::Zero(n,n);
+    VT b = VT::Ones(n);
+    VT p(n);
+    MT V = P.get_mat();
+    int count = 0;
+    NT z0;
+    bool added = false;
+    NT min_plus;
+    while(!added) {
+        min_plus = intersect_line_Vpoly2<NT>(P.get_mat(), center2, v, false, lambdas);
 
 
+        for (int j = 0; j < P.num_of_vertices(); ++j) {
+            if (lambdas[j] > 0.0) {
+                Mat.row(count) = V.row(j);
+                count++;
+            } else {
+                p = V.row(j);
+            }
+        }
+        if (count == n) {
+            std::cout<<count<<std::endl;
+            added = true;
+        } else {
+            std::cout<<count<<std::endl;
+            exit(-1);
+        }
+    }
+    VT a = Mat.colPivHouseholderQr().solve(b);
+    if (a.dot(p) > 1.0) {
+        a = -a;
+        z0 = -1.0;
+    }
+
+    HPolyBall SiTemp = Si;
+    SiTemp.add_facet(a, z0);
+
+    check_convergence(SiTemp, randPoints, a, done, too_few, var);
+
+    if (!done && !too_few) {
+        Si.add_faet(a, z0);
+        return;
+    }
+
+    if (!too_few && done) {
+        Si.add_facet;
+        PolyBallSet.push_back(Si);
+        added_in_set = true;
+        return;
+    }
+
+    if (too_few) {
+        
+    }
+
+}
 
 
 template <class Hyperplane, class Vpolytope, class HPolyBall, class UParameters, typename FT>
-void get_next_convex(Vpolytope &P, std::vector<HPolyBall> &PolyBallSet, FT p_value, FT a, UParameters &var, bool &done){
+void get_next_convex(Vpolytope &P, std::vector<HPolyBall> &PolyBallSet, FT p_value,
+                     FT a, UParameters &var, bool &done){
 
     int n = var.n;
     bool print = var.verbose;
@@ -43,7 +112,7 @@ void get_next_convex(Vpolytope &P, std::vector<HPolyBall> &PolyBallSet, FT p_val
     Point q(n);
     if (print) std::cout<<"origin belongs to last convex body: "<<Si.is_in(q)<<std::endl;
     FT rad;
-    if (ConvSet.size() ==1) {
+    if (PolyBallSet.size() == 1) {
         rad = PolyBallSet[0].second().radius();
         for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(get_point_in_Dsphere(n, rad));
@@ -51,8 +120,8 @@ void get_next_convex(Vpolytope &P, std::vector<HPolyBall> &PolyBallSet, FT p_val
     } else {
         rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var);
     }
-    q.print();
-    if (print) std::cout<<"q after belongs to last convex body: "<<Si.is_in(q)<<std::endl;
+    //q.print();
+    //if (print) std::cout<<"q after belongs to last convex body: "<<Si.is_in(q)<<std::endl;
 
     std::list<Point> listIter = randPoints;
     std::list<Point> listIter2;
@@ -68,89 +137,34 @@ void get_next_convex(Vpolytope &P, std::vector<HPolyBall> &PolyBallSet, FT p_val
     bool added=false;
     bool tested=false, last_hyp = false, last_polyball = false;
     typename  std::list<Point>::iterator pit;
+    q = Point(n);
+    int thre = int(1.0/(1.0-epsilon));
+
     while (true) {
 
-        //count_bef = count;
-        if (print) std::cout<<"points outside new convex = "<<listIter.size()<<std::endl;
-        //rand_coord = uidist(rng);
-        //index.assign(1200,-1);
-        if (print) std::cout<<"q_bef  is in: "<<Si.is_in(q)<<std::endl;
-        if (PolyBallSet.size() ==1 && Si.num_of_balls()==1) {
-            q = get_point_in_Dsphere(n, rad);
-        } else {
+        do {
+
+            if (count>=thre) {
+                check_convergence(Si, VP, epsilon, done, var);
+                if (done){
+                    return;
+                } else {
+                    count=-1000;
+                }
+            }
+            count++;
             rand_point(Si, q, var);
-        }
-        if (print) std::cout<<"rand point is in: "<<Si.is_in(q)<<std::endl;
-        if (!P.is_in(q)) {
-            if (print) std::cout<<"construct ball"<<std::endl;
-            //ball_iter = construct_ball(P, q, cent, qbound, direction, var);
-            iter_hyp = construct_hyp(P, q, var);
-            if (print) std::cout<<"ball constructed"<<std::endl;
-            listIter2 = randPoints;
-            pit = listIter2.begin();
-            while(pit!=listIter2.end()) {
-                if (iter_hyp.is_in(*pit)  && Si.is_in(*pit)) {
-                    count++;
-                    pit=listIter2.erase(pit);
-                } else {
-                    pit++;
-                }
-            }
-            listIter = listIter2;
-            itercount = 0.0;
-            //totcount = 0.0;
-            std::cout<<"count = "<<count<<std::endl;
-            if (count<200) {
-                std::cout<<"count = "<<count<<std::endl;
-                SiIter = Si;
-                SiIter.add_hyperplane(iter_hyp.get_normal_vec(), get_constant());
-                if (is_last_hyp(S, SiIter, q, p_value, a, var)) {
-                    Si.add_hyperplane(iter_hyp.get_normal_vec(), get_constant());
-                    PolyBallSet.push_back(Si);
-                    std::cout<<"\nADD CONVEX No. "<<PolyBallSet.size()<<std::endl;
-                    return;
-                }
-                shift_hyperplane(P, randPoints, S, Si, iter_hyp, a, PolyBallSet, last_hyp, last_polyball, var);
-                if (last_polyball){
-                    done = true;
-                    return;
-                }
-                if (last_hyp) return;
-                //ConvSet.push_back(Si);
-                //return;
-                q = Point(n);
-                continue;
-            }
-            std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-            if (added && count_bef-count<80) {
-                if (is_last_polyball(P, Si, p_value, a, var, false)) {
-                    PolyBallSet.push_back(Si);
-                    std::cout<<"\nADD LAST CONVEX No. "<<ConvSet.size()<<std::endl;
-                    done = true;
-                    return;
-                } else {
-                    added = false;
-                }
-            }
+        } while (VP.is_in(q)==-1);
+
+        construct_new_hyp(Si, VP, PolyBallSet, randPoints, added_in_set, var);
+
+        if (added_in_set) {
+            randPoints.clear();
             q = Point(n);
-            Si.add_hyperplane(iter_hyp.get_normal_vec(), get_constant());
-            added = true;
-            tested = false;
-            totcount =0.0;
-            count_bef = count;
+            rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var);
             count = 0;
-        } else {
-            itercount += 1.0;
-            totcount += 1.0;
-            if (totcount>2.0 && !tested) {
-                if (is_last_polyball(P, Si, p_value, a, var, false)){
-                    PolyBallSet.push_back(Si);
-                    done = true;
-                    return;
-                }
-                tested = true;
-            }
         }
+
     }
     //ConvSet.push_back(Si);
 }
@@ -169,7 +183,7 @@ void get_hyperplane_annealing(Vpolytope &VP, std::vector<HPolyBall> &PolyBallSet
 
     bool done = false;
     while(!done) {
-        get_next_polyball<Hyperplane>(P, PolyBallSet, t_value, a, var1, done);
+        get_next_polyball<Hyperplane>(VP, PolyBallSet, t_value, a, var1, done);
         if (print) std::cout<<"computation of "<<ConvSet.size()<<" encosing convex body completed.."<<std::endl;
     }
 
