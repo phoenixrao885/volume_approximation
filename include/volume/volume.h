@@ -44,7 +44,9 @@
 
 #include "ball_annealing.h"
 #include "Vpoly_volume.h"
-
+#include "facet_enumeration.h"
+#include "hyperplane_annealing.h"
+#include "Vvol_hyp.h"
 
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,

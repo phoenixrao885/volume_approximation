@@ -18,6 +18,10 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+
+#ifndef VPOLY_VOLUME_H
+#define VPOLY_VOLUME_H
+
 //#include "ratio_esti.h"
 
 template <class Ball, typename NT, class Polytope, class Parameters>
@@ -274,3 +278,5 @@ NT Vpoly_volume (Polytope &P, Parameters var) {
 
     return vol;
 }
+
+#endif

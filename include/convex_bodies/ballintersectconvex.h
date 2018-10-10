@@ -99,6 +99,10 @@ public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
     typedef typename Polytope::VT VT;
+    typedef Polytope HPolytope;
+    typedef CBall ball;
+
+    BallIntersectPolytope() {}
 
     BallIntersectPolytope(Polytope &P, CBall &B) : _P(P), _B(B) {};
     

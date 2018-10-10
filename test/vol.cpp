@@ -23,7 +23,7 @@
 #define VOLESTI_DEBUG
 #include <fstream>
 #include "volume.h"
-#include "facet_enumeration.h"
+
 #include "sample_only.h"
 #include "exact_vols.h"
 
@@ -550,11 +550,13 @@ int main(const int argc, const char** argv)
                   //std::cout<<"number of facets = "<<HP2.num_of_hyperplanes()<<std::endl;
                   //std::cout<<"vol = "<<vol<<std::endl;
                   //return 1;
-                  vol = Vpoly_volume<Ball, NT>(VP, var);
-                  NT ext = 1.0/factorial(n);
-                  std::cout<<"exact volume = "<<ext<<std::endl;
-                  NT error_vol = std::abs(vol - ext) / ext;
-                  std::cout<<"error = "<<error_vol<<std::endl;
+                  NT p_value = 0.1;
+                  vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, var);
+                  //vol = Vpoly_volume<Ball, NT>(VP, var);
+                  //NT ext = 1.0/factorial(n);
+                  //std::cout<<"exact volume = "<<ext<<std::endl;
+                  //NT error_vol = std::abs(vol - ext) / ext;
+                  //std::cout<<"error = "<<error_vol<<std::endl;
               }
           }
       }
