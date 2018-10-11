@@ -75,7 +75,8 @@ int main(const int argc, const char** argv)
          coordinate=true,
          exact_zono = false,
          gaussian_sam = false,
-                 facet_enum = false;
+                 facet_enum = false,
+                         hyp_ann = false;
 
     //this is our polytope
     Hpolytope HP;
@@ -202,6 +203,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-fe")){
           facet_enum = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-hyp")){
+          hyp_ann = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-variance")){
@@ -551,8 +556,12 @@ int main(const int argc, const char** argv)
                   //std::cout<<"vol = "<<vol<<std::endl;
                   //return 1;
                   NT p_value = 0.1;
-                  vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, var);
-                  //vol = Vpoly_volume<Ball, NT>(VP, var);
+                  //bool hyp_ann=false;
+                  if (hyp_ann) {
+                      vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, var);
+                  } else {
+                      vol = Vpoly_volume<Ball>(VP, p_value, e, var);
+                  }
                   //NT ext = 1.0/factorial(n);
                   //std::cout<<"exact volume = "<<ext<<std::endl;
                   //NT error_vol = std::abs(vol - ext) / ext;

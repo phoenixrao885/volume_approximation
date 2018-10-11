@@ -257,6 +257,8 @@ public:
     FT maxNT = 1.79769e+308;
     FT minNT = -1.79769e+308;
 
+    IntersectionOfBalls() {}
+
     IntersectionOfBalls (int dim) : _d(dim) {}
 
     IntersectionOfBalls (int dim, std::vector<CBall> vecballs) : _d(dim), balls(vecballs) {};

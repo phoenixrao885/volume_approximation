@@ -105,7 +105,6 @@ void reconstruct_hyp(HPolyBall &Si, VPolytope &VP, std::vector<HPolyBall> &PolyB
 
         while (true) {
 
-            q = Point(n);
             zmed = (z0 + zmax) / 2.0;
             SiIter = Si;
             doneIter = false;
@@ -118,6 +117,7 @@ void reconstruct_hyp(HPolyBall &Si, VPolytope &VP, std::vector<HPolyBall> &PolyB
             if (doneIter) {
                 PolyBallSet.push_back(SiIter);
                 randPoints.clear();
+                q = Point(n);
                 rand_point_generator(SiIter, q, 1200, var.walk_steps, randPoints, var2);
                 break;
             }
@@ -292,7 +292,7 @@ void get_seq_convex(Vpolytope &VP, std::vector<HPolyBall> &PolyBallSet, NT p_val
     //bool added = false;
     bool too_few = false;
     //typename  std::list<Point>::iterator pit;
-    int thre = int(4.0/(1.0-epsilon));
+    int thre = int(3.0/(1.0-epsilon));
 
     while (true) {
 
@@ -303,6 +303,7 @@ void get_seq_convex(Vpolytope &VP, std::vector<HPolyBall> &PolyBallSet, NT p_val
             if (count>=thre) {
                 if (Si.num_of_hyperplanes() > PolyBallSet[PolyBallSet.size()-1].num_of_hyperplanes()) {
                     q = Point(n);
+                    SirandPoints.clear();
                     rand_point_generator(Si, q, 1200, var.walk_steps, SirandPoints, var2);
                     check_converg<Point>(VP, SirandPoints, epsilon, done, too_few, var, false);
                 } else {

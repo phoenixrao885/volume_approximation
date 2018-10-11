@@ -18,251 +18,9 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-/*
-template <class T1, class T2, typename FT>
-void reconstruct_ball(T1 &P, T2 &randPoints, Interballs &S, Interballs &Si, Point &center,
-                      Point &q, Point &direction, FT a, std::vector<Interballs> &Convset, bool &last_ball, bool &last_conv, vars &var) {
+#ifndef BALL_ANNEALING_H
+#define BALL_ANNEALING_H
 
-    int n = var.n;
-    Point v = q * (1.0 / std::sqrt(q.squared_length()));
-    std::pair<NT,NT> bpair = Si.line_intersect(Point(n),v);
-    FT min_plus = bpair.first, tol = 0.000001;
-    //std::cout<<"min_plus = "<<min_plus<<std::endl;
-    Point q2 = v * min_plus;
-
-    //Point midq(n);
-    //Point midpoint(n);
-    //Point c0(n);
-    //FT dis = std::sqrt((q-q2).squared_length());
-    //Point temp = direction;// * (min_plus);
-            //temp = temp * (1.0 / std::sqrt(temp.squared_length()));
-    Interballs SiIter(n);
-    typename  std::list<Point>::iterator pit;
-    T2 listIter2;
-    //int count = 0;
-    Ball ball_iter;
-    Point p(n);
-    int count;
-
-
-    //std::cout<<"closest center found, count = "<<count<<std::endl;
-    //center.print();
-    //std::cout<<"radius = "<<std::sqrt((center - q).squared_length())<<std::endl;
-    //std::cout<<"P is in ball: "<<P.is_in_ball(center,  std::sqrt((center-q).squared_length()) )<<std::endl;
-    FT rad1 = std::sqrt((center - q).squared_length());
-    FT smallrad = rad1;
-    FT rad2 = 2*std::sqrt((center - q2).squared_length());
-    FT midrad;
-    //rad2 = 2 * rad1;
-
-
-    Point Inicenter = center;
-
-    int iters=0;
-    while(true) {
-        iters++;
-        ball_iter = Ball(Inicenter, rad2*rad2);
-        count = 0;
-        listIter2 = randPoints;
-        pit = listIter2.begin();
-        while(pit!=listIter2.end()) {
-            if (ball_iter.is_in(*pit)  && Si.is_in(*pit)) {
-                count++;
-                p = (*pit);
-                pit=listIter2.erase(pit);
-            } else {
-                pit++;
-            }
-        }
-        if (count>200){
-            break;
-        } else {
-            if (iters >10){
-                SiIter = Si;
-                SiIter.add_ball(ball_iter);
-                if (is_last_ball(S, SiIter, p, 0.1, var)) {
-                    Convset.push_back(SiIter);
-                    last_ball = true;
-                    return;
-                }
-                if (is_last_conv(P, Si, 0.1, var, false)){
-                    Convset.push_back(Si);
-                    last_conv = true;
-                    return;
-                }
-                return;
-            }
-            std::cout<<"rad1 = "<<rad1<<" rad2 = "<<rad2<<" count = "<<count<<std::endl;
-            rad2 = 10*rad2;
-        }
-    }
-    p = Point(n);
-
-    bool secondball = false;
-    bool done = false, firstit = true;
-
-    while (!done) {
-        //firstit = true;
-    while(true) {
-        midrad = (rad1 + rad2) / 2.0;
-
-        listIter2 = randPoints;
-        pit = listIter2.begin();
-
-        ball_iter = Ball(Inicenter, midrad*midrad);
-        count = 0;
-        while(pit!=listIter2.end()) {
-            if (ball_iter.is_in(*pit)  && Si.is_in(*pit)) {
-                count++;
-                p = (*pit);
-                pit=listIter2.erase(pit);
-            } else {
-                pit++;
-            }
-        }
-
-        if (count<190){
-           // firstit = false;
-            std::cout<<"RECONSTRUCTION... count = "<<count<<std::endl;
-            SiIter = Si;
-            SiIter.add_ball(ball_iter);
-            if(is_last_ball(S, SiIter, p, a, var)) {
-                //Si.add_ball(ball_iter);
-                Convset.push_back(SiIter);
-                std::cout<<"\nADD CONVEX No. "<<Convset.size()<<std::endl;
-                S = SiIter;
-                p = Point(n);
-                randPoints.clear();
-                rand_point_generator(S, p, 1200, var.walk_steps, randPoints, var);
-                if (midrad == smallrad) {
-                    std::cout <<"MID==1ST TIGHT<=190"<<std::endl;
-                    last_ball = true;
-                    done = true;
-                    break;
-                }
-                rad2 = midrad;
-                rad1 = 2.0 * smallrad - rad2;
-                //secondball = true;
-                break;
-            }
-            rad1 = midrad;
-            //q = midq;
-        } else {
-            if (midrad == smallrad) {
-                //SiIter = Si;
-                std::cout <<"MID==1ST TIGHT>190 count = "<<count<<std::endl;
-                Si.add_ball(ball_iter);
-                //Convset.push_back(Si);
-                //std::cout<<"\nADD CONVEX No. "<<Convset.size()<<std::endl;
-                //S = Si;
-                //p = Point(n);
-                //randPoints.clear();
-                //rand_point_generator(S, p, 1200, var.walk_steps, randPoints, var);
-                done = true;
-                break;
-            }
-            std::cout << "No RECONSTRUCTION... count = " << count << std::endl;
-            rad2 = midrad;
-        }
-        count = 0;
-
-    }
-    }
-
-
-
-}*/
-
-
-template <class Ball, class Polytope, class Point, class Parameters>
-Ball construct_ball(Polytope &P, Point q, Point &cent, Point &qbound, Point &direction, Parameters &var) {
-
-    int n = var.n;
-    typedef typename Polytope::NT NT;
-    typedef typename Polytope::VT VT;
-    typedef typename Polytope::MT MT;
-    Point center(n), c0(n);
-    Point center2(n);
-    Point temp(n);
-    std::vector <NT> lambdas(P.num_of_vertices());
-    //std::cout<<P.is_in(center)<<std::endl;
-    Point v = q * (1.0 / std::sqrt(q.squared_length()));
-    MT Mat = MT::Zero(n,n);
-    VT b = VT::Ones(n);
-    VT p(n);
-    MT V = P.get_mat();
-    int count = 0;
-    NT z0;
-    bool added = false;
-    NT min_plus;
-    while(!added) {
-        min_plus = intersect_line_Vpoly2<NT>(P.get_mat(), center2, v, false, lambdas);
-
-
-        for (int j = 0; j < P.num_of_vertices(); ++j) {
-            if (lambdas[j] > 0.0) {
-                Mat.row(count) = V.row(j);
-                count++;
-            } else {
-                p = V.row(j);
-            }
-        }
-        if (count == n) {
-            std::cout<<count<<std::endl;
-            added = true;
-        } else {
-            std::cout<<count<<std::endl;
-        }
-    }
-    VT a = Mat.colPivHouseholderQr().solve(b);
-    if (a.dot(p) > 1.0) {
-        a = -a;
-        z0 = -1.0;
-    }
-
-    q = v * (min_plus + 0.0001);
-    qbound = q;
-    typename std::vector<NT>::iterator tempit = temp.iter_begin();
-    int i = 0;
-    for ( ; tempit!=temp.iter_end(); ++tempit, ++i) {
-        *tempit = a(i);
-    }
-    direction = temp;
-    temp = temp * (1.0 / std::sqrt(temp.squared_length()));
-    temp = temp * (min_plus * 50.0);
-    int counter = 0;
-    NT const tol = 0.000001;
-    //temp = q;
-    while (true) {
-        counter++;
-        c0 = center;
-
-        center = center - temp;
-        //std::cout<<std::sqrt( (center - q).squared_length())<<std::endl;
-        if (P.is_in_ball(center, std::sqrt( (center - q).squared_length()) )) {
-            break;
-        }
-    }
-    std::cout<<"first ball found, counter = "<<counter<<std::endl;
-    Point midpoint(n);
-    counter = 0;
-    std::cout<<"bisection method to find closest center\n";
-    while ( std::sqrt((center - c0).squared_length())>tol ) {
-        counter++;
-        midpoint = (center + c0) * 0.5;
-        if (P.is_in_ball(midpoint, std::sqrt( (midpoint - q).squared_length()) )) {
-            center = midpoint;
-        } else {
-            c0 = midpoint;
-        }
-    }
-    std::cout<<"closest center found, counter = "<<counter<<std::endl;
-    center.print();
-    std::cout<<"radius = "<<std::sqrt((center - q).squared_length())<<std::endl;
-    cent = center;
-
-    return Ball(center,  (center - q).squared_length() );
-}
 
 template <typename FT>
 bool check_t_test(std::vector<FT> ratios, FT a, FT p_test){
@@ -287,86 +45,16 @@ bool check_t_test(std::vector<FT> ratios, FT a, FT p_test){
 }
 
 
-template <class Interballs, class Point, typename FT, class Parameters>
-bool is_last_ball(Interballs &S,Interballs &Si, Point &p, FT a, Parameters &var) {
+template <class Point, class Interballs, class PointList, typename NT, class Parameters>
+void check_converg2(Interballs &Si, PointList &randPoints, NT p_test, bool &done, bool &too_few, Parameters &var, bool print) {
 
-    int n = var.n;
-    bool print = var.verbose, check = false;
-    //Interballs Si = (*ConvSet.end());
-    std::list<Point> randPoints;
+    //typedef typename HPolyBall::Point Point;
+    std::vector<NT> ratios;
+    NT countsIn = 0.0;
 
-    rand_point_generator(S, p, 1200, var.walk_steps, randPoints, var);
-
-    std::vector<FT> ratios;
-    FT countsIn = 0.0;
     int i = 1;
-
     for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
         if (Si.is_in(*pit)) {
-            countsIn += 1.0;
-        }
-        if (i % 120 == 0) {
-            //if (print) std::cout<<"conv2conv ratio = "<<countsIn/120.0<<std::endl;
-            ratios.push_back(countsIn/120.0);
-            countsIn = 0.0;
-        }
-    }
-
-    if (check_t_test(ratios, a, 0.1)) {
-        return true;
-    }
-    return false;
-
-}
-
-
-template <class Polytope, class Interballs, typename FT, class Parameters>
-bool is_last_conv(Polytope &P,Interballs &Si, FT a, Parameters &var, FT &last_ratio, bool first) {
-
-    typedef typename Polytope::PolytopePoint Point;
-    typedef typename Parameters::RNGType RNGType;
-    int n = var.n;
-    bool print = var.verbose, check = false;
-    //Interballs Si = (*ConvSet.end());
-    std::list<Point> randPoints;
-    //Point p(n);
-    Point p(n);
-
-    FT rad;
-    if (first) {
-        if (print) std::cout<<"this is first ball\n"<<std::endl;
-        rad = Si.get_ball(0).radius();
-        for (int i = 0; i < 10; ++i) {
-            randPoints.push_back(get_point_in_Dsphere<RNGType, Point >(n, rad));
-        }
-    } else {
-        rand_point_generator(Si, p, 10, var.walk_steps, randPoints, var);
-    }
-
-    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-        if (P.is_in(*pit)) {
-            check = true;
-            break;
-        }
-    }
-    if (print) std::cout<<"check is = "<<check<<std::endl;
-    if (!check) return false;
-
-    randPoints.clear();
-    //FT rad = vecBalls[0].radius();
-    if (first) {
-        for (int i = 0; i < 1200; ++i) {
-            randPoints.push_back(get_point_in_Dsphere<RNGType ,Point >(n, rad));
-        }
-    }else {
-        rand_point_generator(Si, p, 1200, var.walk_steps, randPoints, var);
-    }
-    std::vector<FT> ratios;
-    FT countsIn = 0.0;
-    int i = 1;
-
-    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
-        if (P.is_in(*pit)) {
             countsIn += 1.0;
         }
         if (i % 120 == 0) {
@@ -376,176 +64,244 @@ bool is_last_conv(Polytope &P,Interballs &Si, FT a, Parameters &var, FT &last_ra
         }
     }
 
-    std::pair<FT,FT> mv;
-    if (check_t_test(ratios, a, 0.1)) {
-        mv = getMeanVariance(ratios);
-        last_ratio = mv.first;
-        return true;
+    std::pair<NT,NT> mv = getMeanVariance(ratios);
+    NT t_value = 0.700;
+    NT p_mval = mv.first;
+    NT p_varval = mv.second;
+    int ni = ratios.size();
+    //NT p_test = a;
+
+    if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (p_test + 0.05) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+            done= true;
+        }
+    } else {
+        too_few = true;
     }
-    mv = getMeanVariance(ratios);
-    last_ratio = mv.first;
-    return false;
 
 }
 
-template <class Polytope, class PointList, class Interballs, class Point, typename NT, class Parameters>
-void reconstruct_ball(Polytope &P, PointList &randPoints, Interballs &S, Interballs &Si, Point &center,
-                      Point &q, Point &direction, NT a, std::vector<Interballs> &Convset, bool &last_ball,
-                      bool &last_conv, NT &last_ratio, Parameters &var) {
+//construct_ball(Si, VP, ConvSet, randPoints, q, p_value, var);
+template <class Interballs, class VPolytope, class Point, class PointList, typename NT, class Parameters>
+void construct_ball(Interballs &Si, VPolytope &VP, std::vector<Interballs> &ConvSet,
+                    PointList &randPoints, Point &q, NT &p_value, Parameters &var) {
+
+    int n = var.n;
+    //typedef typename VPolytope::NT NT;
+    typedef typename VPolytope::VT VT;
+    typedef typename VPolytope::MT MT;
+    typedef typename Interballs::cball Ball;
+    Parameters var2 = var;
+    var2.coordinate = true;
+    Point center(n), c0(n);
+    Point center2(n);
+    Point temp(n);
+    std::vector <NT> lambdas(VP.num_of_vertices());
+    //std::cout<<P.is_in(center)<<std::endl;
+    Point v = q * (1.0 / std::sqrt(q.squared_length()));
+    MT Mat = MT::Zero(n,n);
+    VT b = VT::Ones(n);
+    VT p(n);
+    MT V = VP.get_mat();
+    int count = 0;
+    NT z0;
+    bool added = false;
+    NT min_plus;
+    while(!added) {
+        min_plus = intersect_line_Vpoly2<NT>(VP.get_mat(), center2, v, false, lambdas);
+
+
+        for (int j = 0; j < VP.num_of_vertices(); ++j) {
+            if (lambdas[j] > 0.0) {
+                Mat.row(count) = V.row(j);
+                count++;
+            } else {
+                p = V.row(j);
+            }
+        }
+        if (count == n) {
+            //std::cout<<count<<std::endl;
+            added = true;
+        } else {
+            std::cout<<count<<std::endl;
+            exit(-1);
+        }
+    }
+    VT a = Mat.colPivHouseholderQr().solve(b);
+    if (a.dot(p) > 1.0) {
+        a = -a;
+        z0 = -1.0;
+    }
+
+    //q = v * (min_plus + 0.0001);
+    q = v * (min_plus + 0.001);
+    typename std::vector<NT>::iterator tempit = temp.iter_begin();
+    int i = 0;
+    for ( ; tempit!=temp.iter_end(); ++tempit, ++i) {
+        *tempit = a(i);
+    }
+    temp = temp * (1.0 / std::sqrt(temp.squared_length()));
+    temp = temp * (min_plus * 50.0);
+    int counter = 0;
+    NT const tol = 0.000001;
+    //temp = q;
+    while (true) {
+        counter++;
+        c0 = center;
+
+        center = center - temp;
+        //std::cout<<std::sqrt( (center - q).squared_length())<<std::endl;
+        if (VP.is_in_ball(center, std::sqrt( (center - q).squared_length()) )) {
+            break;
+        }
+    }
+  //  std::cout<<"first ball found, counter = "<<counter<<std::endl;
+    Point midpoint(n);
+    counter = 0;
+   // std::cout<<"bisection method to find closest center\n";
+    while ( std::sqrt((center - c0).squared_length())>tol ) {
+        counter++;
+        midpoint = (center + c0) * 0.5;
+        if (VP.is_in_ball(midpoint, std::sqrt( (midpoint - q).squared_length()) )) {
+            center = midpoint;
+        } else {
+            c0 = midpoint;
+        }
+    }
+  //  std::cout<<"closest center found, counter = "<<counter<<std::endl;
+   // center.print();
+   // std::cout<<"radius = "<<std::sqrt((center - q).squared_length())<<std::endl;
+
+    Ball B0(center,  (center - q).squared_length() );
+    Interballs SiTemp = Si;
+    SiTemp.add_ball(B0);
+    NT rerad;
+    bool done = false, too_few = false;
+
+    check_converg2<Point>(SiTemp, randPoints, p_value, done, too_few, var, false);
+   // std::cout<<"initial ball.... "<<"done = "<<done<< " too_few = "<<too_few<<std::endl;
+
+    if (!done && !too_few) {
+        Si.add_ball(B0);
+        //randPoints.clear();
+        //q = Point(n);
+        //rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var2);
+        return;
+    }
+
+    if (done) {
+        Si.add_ball(B0);
+        ConvSet.push_back(Si);
+        //added_in_set = true;
+        randPoints.clear();
+        q = Point(n);
+        rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var2);
+        return;
+    }
+
+    if (too_few) {
+       // std::cout<<"reconstructing balls.."<<std::endl;
+        rerad = B0.radius();
+        reconstruct_ball(Si, VP, ConvSet, randPoints, center, rerad, p_value, var);
+        //added_in_set = true;
+    }
+
+    //return Ball(center,  (center - q).squared_length() );
+}
+
+
+//reconstruct_ball(Si, VP, ConvSet, randPoints, center, q, v, p_value, var);
+template <class VPolytope, class PointList, class Interballs, class Point, typename NT, class Parameters>
+void reconstruct_ball(Interballs Si, VPolytope &VP, std::vector<Interballs> &Convset,
+                      PointList &randPoints, Point &center, NT &radius, NT p_value,
+                      Parameters var){
 
     int n = var.n;
     typedef typename Interballs::cball Ball;
-    Point v = q * (1.0 / std::sqrt(q.squared_length()));
-    std::pair<NT,NT> bpair = Si.line_intersect(Point(n),v);
-    NT min_plus = bpair.first, tol = 0.000001;
-    //std::cout<<"min_plus = "<<min_plus<<std::endl;
-    Point q2 = v * min_plus;
+    typedef typename VPolytope::MT MT;
+    typedef typename VPolytope::VT VT;
+    Parameters var2 = var;
+    var2.coordinate = true;
 
-    //Point midq(n);
-    //Point midpoint(n);
-    //Point c0(n);
-    //FT dis = std::sqrt((q-q2).squared_length());
-    //Point temp = direction;// * (min_plus);
-    //temp = temp * (1.0 / std::sqrt(temp.squared_length()));
-    Interballs SiIter(n);
-    typename  std::list<Point>::iterator pit;
-    PointList listIter2;
-    //int count = 0;
-    Ball ball_iter;
-    Point p(n);
-    int count;
-
-
-    //std::cout<<"closest center found, count = "<<count<<std::endl;
-    //center.print();
-    //std::cout<<"radius = "<<std::sqrt((center - q).squared_length())<<std::endl;
-    //std::cout<<"P is in ball: "<<P.is_in_ball(center,  std::sqrt((center-q).squared_length()) )<<std::endl;
-    NT rad1 = std::sqrt((center - q).squared_length());
-    NT smallrad = rad1;
-    //FT rad2 = 2*std::sqrt((center - q2).squared_length());
-    NT midrad;
-    NT rad2 = 2 * rad1;
-
-
-    Point Inicenter = center;
-
-    int iters=0;
-    while(true) {
-        iters++;
-        ball_iter = Ball(Inicenter, rad2*rad2);
-        count = 0;
-        listIter2 = randPoints;
-        pit = listIter2.begin();
-        while(pit!=listIter2.end()) {
-            if (ball_iter.is_in(*pit)  && Si.is_in(*pit)) {
-                count++;
-                p = (*pit);
-                pit=listIter2.erase(pit);
-            } else {
-                pit++;
-            }
-        }
-        if (count>190){
-            break;
-        } else {
-            if (iters >10){
-                SiIter = Si;
-                SiIter.add_ball(ball_iter);
-                if (is_last_ball(S, SiIter, p, 0.1, var)) {
-                    Convset.push_back(SiIter);
-                    last_ball = true;
-                    return;
-                }
-                if (is_last_conv(P, Si, 0.1, var, last_ratio, false)){
-                    Convset.push_back(Si);
-                    last_conv = true;
-                    return;
-                }
-                Convset.push_back(SiIter);
-                last_ball = true;
-                return;
-                //return;
-            }
-            std::cout<<"rad1 = "<<rad1<<" rad2 = "<<rad2<<" count = "<<count<<std::endl;
-            rad2 = 10*rad2;
-        }
+    typename  std::list<Point>::iterator rpit = randPoints.begin();
+    int i =0;
+    NT maxrad = 0.0, temprad;
+    for ( ; rpit!=randPoints.end(); ++rpit, ++i) {
+        temprad = std::sqrt((center- (*rpit)).squared_length());
+        if (temprad>maxrad) maxrad = temprad;
     }
-    p = Point(n);
 
-    bool secondball = false;
-    bool done = false, firstit = true;
+    NT rad1 = radius, rad2 = maxrad, midrad;
+    //std::cout<<"rad1 = "<<rad1<<" rad2 = "<<rad2<<std::endl;
+    Interballs SiIter;
+    Ball ball_iter;
+    bool doneIter, too_few;
+    Point q(n);
 
-    while (!done) {
+    while (true) {
         //firstit = true;
-        while(true) {
+        while (true) {
+
             midrad = (rad1 + rad2) / 2.0;
+            ball_iter = Ball(center, midrad * midrad);
+            doneIter = false;
+            too_few = false;
 
-            listIter2 = randPoints;
-            pit = listIter2.begin();
+            SiIter.add_ball(ball_iter);
+            check_converg2<Point>(SiIter, randPoints, p_value, doneIter, too_few, var, false);
 
-            ball_iter = Ball(Inicenter, midrad*midrad);
-            count = 0;
-            while(pit!=listIter2.end()) {
-                if (ball_iter.is_in(*pit)  && Si.is_in(*pit)) {
-                    count++;
-                    p = (*pit);
-                    pit=listIter2.erase(pit);
-                } else {
-                    pit++;
-                }
+            //std::cout<<"2nd loop.... "<<"doneIter = "<<doneIter<< " too_few = "<<too_few<<std::endl;
+            if (doneIter) {
+                Convset.push_back(SiIter);
+                randPoints.clear();
+                q = Point(n);
+                rand_point_generator(SiIter, q, 1200, var.walk_steps, randPoints, var2);
+                break;
             }
 
-            if (count<190){
-                // firstit = false;
-                std::cout<<"RECONSTRUCTION... count = "<<count<<std::endl;
-                SiIter = Si;
-                SiIter.add_ball(ball_iter);
-                if(is_last_ball(S, SiIter, p, a, var)) {
-                    //Si.add_ball(ball_iter);
-                    Convset.push_back(SiIter);
-                    std::cout<<"\nADD CONVEX No. "<<Convset.size()<<std::endl;
-                    S = SiIter;
-                    p = Point(n);
-                    randPoints.clear();
-                    rand_point_generator(S, p, 1200, var.walk_steps, randPoints, var);
-                    if (midrad == smallrad) {
-                        std::cout <<"MID==1ST TIGHT<=190"<<std::endl;
-                        last_ball = true;
-                        done = true;
-                        break;
-                    }
-                    rad2 = midrad;
-                    rad1 = 2.0 * smallrad - rad2;
-                    //secondball = true;
-                    break;
-                }
-                rad1 = midrad;
-                //q = midq;
-            } else {
-                if (midrad == smallrad) {
-                    //SiIter = Si;
-                    std::cout <<"MID==1ST TIGHT>190 count = "<<count<<std::endl;
-                    Si.add_ball(ball_iter);
-                    //Convset.push_back(Si);
-                    //std::cout<<"\nADD CONVEX No. "<<Convset.size()<<std::endl;
-                    //S = Si;
-                    //p = Point(n);
-                    //randPoints.clear();
-                    //rand_point_generator(S, p, 1200, var.walk_steps, randPoints, var);
-                    done = true;
-                    break;
-                }
-                std::cout << "No RECONSTRUCTION... count = " << count << std::endl;
+            if (!doneIter && !too_few) {
                 rad2 = midrad;
             }
-            count = 0;
 
+            if (too_few) {
+                rad1 = midrad;
+            }
+        }
+
+        SiIter = Si;
+        ball_iter = Ball(center, radius*radius);
+        SiIter.add_ball(ball_iter);
+        doneIter = false;
+        too_few = false;
+        //std::cout<<randPoints.size()<<std::endl;
+        check_converg2<Point>(SiIter, randPoints, p_value, doneIter, too_few, var, false);
+        //std::cout<<"doneIter = "<<doneIter<< " too_few = "<<too_few<<std::endl;
+
+        if (doneIter) {
+            Convset.push_back(SiIter);
+            Si = SiIter;
+            randPoints.clear();
+            q = Point(n);
+            rand_point_generator(SiIter, q, 1200, var.walk_steps, randPoints, var2);
+            return;
+        }
+
+        if (!too_few) {
+            Si.add_ball(ball_iter);
+            //randPoints.clear();
+            //q = Point(n);
+            //rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var2);
+            return;
+        }
+
+        if (too_few) {
+            rad2 = midrad;
+            rad1 = radius;
         }
     }
-
-
-
 }
+
 
 
 template <class Polytope, class Interballs, class Ball, class Parameters>
@@ -593,7 +349,7 @@ void get_first_conv(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<B
         c_e(i)=xc[i];  // write chebychev center in an eigen vector
     }
     P.shift(c_e);
-    std::cout<<"radius of minim ball = "<<rad<<std::endl;
+    //std::cout<<"radius of minim ball = "<<rad<<std::endl;
     xc.print();
     //Point xc = Point(n);
     //std::vector<Ball> S0;
@@ -618,16 +374,19 @@ void get_first_conv(T &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &v
     ConvSet.push_back(Interballs(P.dimension(), vecBalls));
 }*/
 
-template <class Polytope, class Interballs, class Ball,  typename FT, class Parameters>
-void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls, FT a, Parameters &var, FT &last_ratio, bool &done){
+template <class VPolytope, class Interballs, class Ball,  typename FT, class Parameters>
+void get_next_convex(VPolytope &VP, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls,
+                     FT p_value, FT epsilon, Parameters &var, bool &done){
 
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename VPolytope::PolytopePoint Point;
     typedef typename Parameters::RNGType RNGType;
+    Parameters var2 = var;
+    var2.coordinate = true;
     int n = var.n;
     bool print = var.verbose;
-    if (print) std::cout<<"computation of "<<ConvSet.size()+1<<" encosing convex body started...\n"<<std::endl;
+    //if (print) std::cout<<"computation of "<<ConvSet.size()+1<<" encosing convex body started...\n"<<std::endl;
     Interballs Si = ConvSet[ConvSet.size()-1];
-    if (print) std::cout<<"last convex body has = "<<Si.num_of_balls()<<" balls"<<std::endl;
+    //if (print) std::cout<<"last convex body has = "<<Si.num_of_balls()<<" balls"<<std::endl;
     std::list<Point> randPoints;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -635,11 +394,8 @@ void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<
     //RNGType &rng2 = var.rng;
 
     Ball test_ball;//= Si.get_ball();
-    for (int j = 0; j < Si.num_of_balls(); ++j) {
-
-    }
     Point q(n);
-    if (print) std::cout<<"origin belongs to last convex body: "<<Si.is_in(q)<<std::endl;
+    //if (print) std::cout<<"origin belongs to last convex body: "<<Si.is_in(q)<<std::endl;
     FT rad;
     if (ConvSet.size() ==1) {
         rad = vecBalls[0].radius();
@@ -649,154 +405,66 @@ void get_next_convex(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<
     } else {
         rand_point_generator(Si, q, 1200, var.walk_steps, randPoints, var);
     }
-    q.print();
-    if (print) std::cout<<"q after belongs to last convex body: "<<Si.is_in(q)<<std::endl;
+    //q.print();
+    //if (print) std::cout<<"q after belongs to last convex body: "<<Si.is_in(q)<<std::endl;
 
-    std::list<Point> listIter = randPoints;
-    std::list<Point> listIter2;
+    std::list<Point> SirandPoints;
+    int count = 0;
+    int thre = int(3.0/(1.0-epsilon));
+    bool too_few = false;
 
-    //int rand_coord;
-    Ball ball_iter;
-    //std::vector<int> index(1200, -1);
-    int count = 0, count_bef=1200;
-    FT totcount = 0, itercount = 0;
-    Interballs SiIter(n);
-    Interballs S = Si;
-    Point direction(n), cent(n), qbound(n);
+    while (true) {
 
-    bool added=false;
-    bool tested=false, last_ball = false, last_conv = false;
-    typename  std::list<Point>::iterator pit;
-    int too_few=0;
-        while (true) {
+        q = Point(n);
+        do {
 
-            //count_bef = count;
-            if (print) std::cout<<"points outside new convex = "<<listIter.size()<<std::endl;
-            //rand_coord = uidist(rng);
-            //index.assign(1200,-1);
-            if (print) std::cout<<"q_bef  is in: "<<Si.is_in(q)<<std::endl;
-            if (ConvSet.size() ==1 && Si.num_of_balls()==1) {
-                q = get_point_in_Dsphere<RNGType ,Point >(n, rad);
-            } else {
-                rand_point(Si, q, var);
-            }
-            //totcount += 0.0;
-            if (print) std::cout<<"rand point is in: "<<Si.is_in(q)<<std::endl;
-            //q.print();
-            /*if (is_last_conv(P, Si, a, var, false)){
-                ConvSet.push_back(Si);
-                done = true;
-                return;
-            }*/
-            if (!P.is_in(q)) {
-                totcount=0.0;
-                if (print) std::cout<<"construct ball"<<std::endl;
-                ball_iter = construct_ball<Ball>(P, q, cent, qbound, direction, var);
-                if (print) std::cout<<"ball constructed"<<std::endl;
-                listIter2 = randPoints;
-                pit = listIter2.begin();
-                while(pit!=listIter2.end()) {
-                    if (ball_iter.is_in(*pit)  && Si.is_in(*pit)) {
-                        count++;
-                        pit=listIter2.erase(pit);
-                    } else {
-                        pit++;
-                    }
-                }
-                listIter = listIter2;
-                vecBalls.push_back(ball_iter);
-
-
-                itercount = 0.0;
-                //totcount = 0.0;
-                std::cout<<"count = "<<count<<std::endl;
-                if (count<190) {
-                    std::cout<<"count = "<<count<<std::endl;
-                    SiIter = Si;
-                    SiIter.add_ball(ball_iter);
-                    if (is_last_ball(S, SiIter, q, a, var)) {
-                        Si.add_ball(ball_iter);
-                        ConvSet.push_back(Si);
-                        std::cout<<"\nADD CONVEX No. "<<ConvSet.size()<<std::endl;
-                        return;
-                    }
-                    reconstruct_ball(P, randPoints, S, Si, cent, qbound, direction, a,
-                                     ConvSet, last_ball, last_conv, last_ratio, var);
-                    if (last_conv){
-                        done = true;
-                        return;
-                    }
-                    if (last_ball) return;
-                    //ConvSet.push_back(Si);
-                    //return;
+            //std::cout<<"count = "<<count<<" epsilon = "<<epsilon<<std::endl;
+            if (count >= thre) {
+                if (Si.num_of_balls() > ConvSet[ConvSet.size() - 1].num_of_balls()) {
                     q = Point(n);
-                    totcount=0.0;
-                    continue;
-                } else if (count_bef - count < 10 && false) {
-                    std::cout<<"count_bef - count = "<<count_bef - count<<std::endl;
-                    if (is_last_conv(P, Si, a, var, last_ratio, false)){
-                        ConvSet.push_back(Si);
-                        done = true;
-                        return;
-                    }
+                    SirandPoints.clear();
+                    rand_point_generator(Si, q, 1200, var.walk_steps, SirandPoints, var2);
+                    check_converg2<Point>(VP, SirandPoints, epsilon, done, too_few, var, false);
+                } else {
+                    check_converg2<Point>(VP, randPoints, epsilon, done, too_few, var, false);
                 }
-
-                if (added) {
-                    if (count_bef - count < 12) {
-                        too_few++;
-                        std::cout << "too_few = " << too_few << std::endl;
-                        std::cout << "count_bef - count = " << count_bef - count << std::endl;
-
-                        if (too_few >= 150) {
-                            //continue;
-                            std::cout << "count_bef - count = " << count_bef - count << std::endl;
-                            //if (is_last_conv(P, Si, a, var, last_ratio, false) || true) {
-                                ConvSet.push_back(Si);
-                                std::cout << "\nADD LAST CONVEX No. " << ConvSet.size() << std::endl;
-                                done = true;
-                                return;
-                            //} else {
-                                added = false;
-                            //}
-                        }
-                        if (count_bef - count == 0) {
-                            count=0;
-                            totcount=0.0;
-                            continue;
-                        }
-                    } else {
-                        too_few = 0;
-                    }
-                }
-                q = Point(n);
-                Si.add_ball(ball_iter);
-                added = true;
-                tested = false;
-                totcount =0.0;
-                count_bef = count;
-                count = 0;
-                std::cout<<"BAL ADDED No: "<<Si.num_of_balls()<<std::endl;
-            } else {
-                itercount += 1.0;
-                totcount += 1.0;
-                if (totcount>3.0 && !tested) {
-                    std::cout<<"totcount = "<<totcount<<std::endl;
-                    if (is_last_conv(P, Si, a, var, last_ratio, false)){
+                //std::cout<<"VP convergence.... "<<"doneIter = "<<done<< " too_few = "<<too_few<<std::endl;
+                if (done) {
+                    if (Si.num_of_balls() > ConvSet[ConvSet.size() - 1].num_of_balls()) {
                         ConvSet.push_back(Si);
-                        done = true;
-                        return;
                     }
-                    tested = true;
+                    std::cout << "number of balls in Si = " << Si.num_of_hyperplanes() << std::endl;
+                    return;
+
+                } else if (!too_few) {
+                    if (Si.num_of_balls() > ConvSet[ConvSet.size() - 1].num_of_balls()) {
+                        ConvSet.push_back(Si);
+                    }
+                    std::cout << "number of balls in Si = " << Si.num_of_balls() << std::endl;
+                    done = true;
+                    return;
+                } else {
+                    count = -1000;
+                    too_few = false;
                 }
             }
-        }
-    ConvSet.push_back(Si);
+            count++;
+            rand_point(Si, q, var);
+        } while (VP.is_in(q) == -1);
+
+        construct_ball(Si, VP, ConvSet, randPoints, q, p_value, var);
+        std::cout<<"number of balls = "<<Si.num_of_balls()<<std::endl;
+        count = 0;
+        too_few = false;
+    }
+
+
 }
 
 
 template <class Polytope, class Interballs, class Ball, typename NT, class Parameters>
 void get_ball_schedule(Polytope &P, std::vector<Interballs> &ConvSet, std::vector<Ball> &vecBalls,
-                       NT a, NT &last_ratio, Parameters &var) {
+                       NT p_value, NT epsilon, Parameters &var) {
 
     int n = var.n;
     typedef BallIntersectPolytope<Polytope, NT>        BallPoly;
@@ -815,15 +483,17 @@ void get_ball_schedule(Polytope &P, std::vector<Interballs> &ConvSet, std::vecto
     if (print) std::cout<<"radius = "<<vecBalls[0].radius()<<std::endl;
     Point p = get_point_in_Dsphere<RNGType , Point>(n, vecBalls[0].radius());
     if (print) std::cout<<"checking if first enclosing body is the last as well..\n"<<std::endl;
-    if (is_last_conv(P, ConvSet[0], a, var, last_ratio, true)) {
-        if (print) std::cout<<"firsti is last as well\n"<<std::endl;
-        return;
-    }
-    if (print) std::cout<<"first not last.... Computing sequence of enclosing convex bodies..\n"<<std::endl;
+    //if (is_last_conv(P, ConvSet[0], a, var, last_ratio, true)) {
+        //if (print) std::cout<<"firsti is last as well\n"<<std::endl;
+        //return;
+    //}
+    //if (print) std::cout<<"first not last.... Computing sequence of enclosing convex bodies..\n"<<std::endl;
     bool done = false;
     int test_counter = 2;
-    while(!done) {
-        get_next_convex(P, ConvSet, vecBalls, a, var, last_ratio, done);
-        if (print) std::cout<<"computation of "<<ConvSet.size()<<" encosing convex body completed.."<<std::endl;
-    }
+    //while(!done) {
+        get_next_convex(P, ConvSet, vecBalls, p_value, epsilon, var, done);
+        //if (print) std::cout<<"computation of "<<ConvSet.size()<<" encosing convex body completed.."<<std::endl;
+    //}
 }
+
+#endif

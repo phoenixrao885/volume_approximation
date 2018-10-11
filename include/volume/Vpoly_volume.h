@@ -25,7 +25,7 @@
 //#include "ratio_esti.h"
 
 template <class Ball, typename NT, class Polytope, class Parameters>
-NT Vpoly_volume (Polytope &P, Parameters var) {
+NT Vpoly_volume (Polytope &P, NT p_value, NT epsilon, Parameters var) {
 
     typedef typename Polytope::PolytopePoint Point;
     //typedef Ball<Point> Ball;
@@ -41,7 +41,7 @@ NT Vpoly_volume (Polytope &P, Parameters var) {
     NT vol;
     if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
     NT round_value, last_ratio;
-    get_ball_schedule(P, ConvSet, vecBalls, 0.70, last_ratio, var);
+    get_ball_schedule(P, ConvSet, vecBalls, p_value, epsilon, var);
     if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
 
