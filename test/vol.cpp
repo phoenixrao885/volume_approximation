@@ -558,9 +558,9 @@ int main(const int argc, const char** argv)
                   NT p_value = 0.1;
                   //bool hyp_ann=false;
                   if (hyp_ann) {
-                      vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, var);
+                      vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, round, var);
                   } else {
-                      vol = Vpoly_volume<Ball>(VP, p_value, e, var);
+                      vol = Vpoly_volume<Ball>(VP, p_value, e, round, var);
                   }
                   //NT ext = 1.0/factorial(n);
                   //std::cout<<"exact volume = "<<ext<<std::endl;

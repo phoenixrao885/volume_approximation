@@ -22,23 +22,55 @@
 #define VVOL_HYP_H
 
 template <class Ball, class HPolytope, class VPolytope, typename NT, class Parameters>
-NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, Parameters &var) {
+NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &var) {
 
     typedef typename VPolytope::PolytopePoint Point;
+    typedef typename VPolytope::MT MT;
+    typedef typename VPolytope::VT VT;
     typedef BallIntersectPolytope<HPolytope, Ball> HPolyBall;
     //typedef Ball<Point> Ball;
     //typedef IntersectionOfBalls<Ball, NT> Interballs;
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
     int n = var.n, min_index, max_index, index;
-    var.delta = 4.0*0.8/NT(n);
+    //var.delta = 4.0*0.8/NT(n);
     std::vector<HPolyBall> ConvSet;
     std::vector<Ball> vecBalls;
     P.print();
     bool print = var.verbose;
     NT vol;
+    NT round_value = 1.0;
+
+    if (round) {
+        std::vector<NT> vec(n,0.0);
+        Point xc(n);
+        MT V = P.get_mat();
+        int k = V.rows();
+        Point temp;
+
+        for (int i = 0; i < k; ++i) {
+            for (int j = 0; j < n; ++j) {
+                vec[j] = V(i,j);
+            }
+            temp = Point(n, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(k));
+        VT c_e(n);
+        for (int l = 0; l < n; ++l) {
+            c_e(l) = xc[l];
+        }
+        P.shift(c_e);
+        std::pair<Point,NT> Che(Point(n), 0.1);
+        std::pair <NT, NT> res_round;
+        res_round = rounding_min_ellipsoid(P, Che, var);
+        round_value = res_round.first;
+    }
+
+
+
     if (print) std::cout<<"\n\ncomputing schedule...\n"<<std::endl;
-    NT round_value, last_ratio, aaa= 0.7;
+    NT last_ratio, aaa= 0.7;
     get_hyperplane_annealing(P, ConvSet, p_value, aaa, epsilon, var);
     //if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
@@ -274,7 +306,7 @@ NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, Parameters &var) {
 
 
 
-    return vol;
+    return round_value * vol;
 }
 
 #endif

@@ -25,9 +25,11 @@
 //#include "ratio_esti.h"
 
 template <class Ball, typename NT, class Polytope, class Parameters>
-NT Vpoly_volume (Polytope &P, NT p_value, NT epsilon, Parameters var) {
+NT Vpoly_volume (Polytope &P, NT p_value, NT epsilon, bool round, Parameters var) {
 
     typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
     //typedef Ball<Point> Ball;
     typedef IntersectionOfBalls<Ball, NT> Interballs;
     NT maxNT = 1.79769e+308;
@@ -40,7 +42,34 @@ NT Vpoly_volume (Polytope &P, NT p_value, NT epsilon, Parameters var) {
     bool print = var.verbose;
     NT vol;
     if (print) std::cout<<"\n\ncomputing ball schedule...\n"<<std::endl;
-    NT round_value, last_ratio;
+    NT round_value = 1.0, last_ratio;
+
+    if (round) {
+        std::vector<NT> vec(n,0.0);
+        Point xc(n);
+        MT V = P.get_mat();
+        int k = V.rows();
+        Point temp;
+
+        for (int i = 0; i < k; ++i) {
+            for (int j = 0; j < n; ++j) {
+                vec[j] = V(i,j);
+            }
+            temp = Point(n, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(k));
+        VT c_e(n);
+        for (int l = 0; l < n; ++l) {
+            c_e(l) = xc[l];
+        }
+        P.shift(c_e);
+        std::pair<Point,NT> Che(Point(n), 0.1);
+        std::pair <NT, NT> res_round;
+        res_round = rounding_min_ellipsoid(P, Che, var);
+        round_value = res_round.first;
+    }
+
     get_ball_schedule(P, ConvSet, vecBalls, p_value, epsilon, var);
     if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
@@ -276,7 +305,7 @@ NT Vpoly_volume (Polytope &P, NT p_value, NT epsilon, Parameters var) {
 
 
 
-    return vol;
+    return round_value * vol;
 }
 
 #endif
