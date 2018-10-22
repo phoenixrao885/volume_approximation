@@ -18,11 +18,11 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-#ifndef VVOL_HYP_H
-#define VVOL_HYP_H
+#ifndef INTER_VPOLY_H
+#define INTER_VPOLY_H
 
 template <class Ball, class HPolytope, class VPolytope, typename NT, class Parameters>
-NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &var) {
+NT Inter_Vpoly_Vol(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &var) {
 
     typedef typename VPolytope::PolytopePoint Point;
     typedef typename VPolytope::MT MT;
@@ -41,6 +41,7 @@ NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &
     NT vol;
     NT round_value = 1.0;
 
+    /*
     if (round) {
         std::vector<NT> vec(n,0.0);
         Point xc(n);
@@ -65,13 +66,19 @@ NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &
         std::pair <NT, NT> res_round;
         res_round = rounding_min_ellipsoid(P, Che, var);
         round_value = res_round.first;
-    }
+    }*/
 
 
 
     if (print) std::cout<<"\n\ncomputing schedule...\n"<<std::endl;
     NT last_ratio, aaa= 0.7;
-    get_hyperplane_annealing(P, ConvSet, p_value, aaa, epsilon, var);
+    bool empty = false;
+    Point xc = P.getInnerPoint(empty);
+    if (empty) {
+        std::cout<<"intersection is empty"<<std::endl;
+        return -1.0;
+    }
+    get_hyperplane_annealing2(P, ConvSet, p_value, aaa, epsilon, xc, var);
     //if (print) std::cout<<"ball schedule computed!\n"<<std::endl;
     if (print) std::cout<<"number of conv bodies= "<<ConvSet.size()<<std::endl;
     if (print) std::cout<<"number of hyperplanes in last convex = "<<ConvSet[ConvSet.size()-1].num_of_hyperplanes()<<std::endl;
@@ -221,7 +228,7 @@ NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &
         }
 
         //var.walk_steps=2*(10+10/n);
-        var.walk_steps = 10*std::log2(NT(n));
+        var.walk_steps = 20*std::log2(NT(n));
         //W = W/2;
         S2 = ConvSet[mm-1];
         p = Point(n);
@@ -234,7 +241,7 @@ NT Vpoly_vol_hyp(VPolytope &P, NT &p_value, NT epsilon, bool round, Parameters &
         //std::cout<<"countin = "<<countIn<<std::endl;
 
         std::cout<<"dimension = "<<n<<"W = "<<var.walk_steps<<std::endl;
-        W =8*n*n + 1200;
+        W =10*n*n + 1200;
         min_val = minNT;
         max_val = maxNT;
         min_index = W-1;

@@ -27,8 +27,8 @@
 #include "polytopes.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
-#include "vpolyintersectvpoly.h"
 #include "samplers.h"
+#include "vpolyintersectvpoly.h"
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
@@ -47,6 +47,9 @@
 #include "facet_enumeration.h"
 #include "hyperplane_annealing.h"
 #include "Vvol_hyp.h"
+
+#include "HypAnnInterVpoly.h"
+#include "Inter_Vpoly.h"
 
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
@@ -378,6 +381,13 @@ NT volume_gaussian_annealing(Polytope &P,
         while(!done || (*itsIt)<min_steps){
 
             gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+            if(P.is_in(p)!=-1) {
+                std::cout<<"point out"<<std::endl;
+                P.print();
+                p_prev.print();
+                p.print();
+                exit(-1);
+            }
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);

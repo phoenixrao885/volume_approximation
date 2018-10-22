@@ -52,6 +52,7 @@ int main(const int argc, const char** argv)
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
+    typedef IntersectionOfVpoly<Vpolytope> InterVpoly;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N, nsam = 100;
     NT e=1;
@@ -76,12 +77,16 @@ int main(const int argc, const char** argv)
          exact_zono = false,
          gaussian_sam = false,
                  facet_enum = false,
-                         hyp_ann = false;
+                         hyp_ann = false,
+                                 interVpoly = false;
 
     //this is our polytope
     Hpolytope HP;
     Vpolytope VP; // RNGType only needed for the construction of the inner ball which needs randomization
     Zonotope  ZP;
+    Vpolytope VP1;
+    Vpolytope VP2;
+    InterVpoly IntVP;
 
     // parameters of CV algorithm
     bool user_W=false, user_N=false, user_ratio=false;
@@ -260,6 +265,32 @@ int main(const int argc, const char** argv)
           ZP.init(Pin);
           correct = true;
       }
+      if(!strcmp(argv[i],"-f4")||!strcmp(argv[i],"--file4")){
+          file = true;
+          interVpoly = true;
+          std::cout<<"Reading input from file1..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<NT> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          VP1.init(Pin);
+          VP1.print();
+
+          std::cout<<"Reading input from file2..."<<std::endl;
+          std::ifstream inp2;
+          std::vector<std::vector<NT> > Pin2;
+          inp2.open(argv[++i],std::ifstream::in);
+          read_pointset(inp2,Pin2);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin2[0][1]-1;
+          VP2.init(Pin2);
+          VP2.print();
+
+          IntVP.init(VP1, VP2);
+          IntVP.print();
+          //return -1;
+          correct = true;
+      }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
             file=true;
@@ -397,14 +428,22 @@ int main(const int argc, const char** argv)
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
-  } else if(!Vpoly) {
-      InnerBall = HP.ComputeInnerBall();
-  }else{
+  } else if(Vpoly) {
       InnerBall = VP.ComputeInnerBall();
+  }else if (!interVpoly){
+      InnerBall = HP.ComputeInnerBall();
+  } else if (annealing) {
+      bool empty = false;
+      InnerBall.first = IntVP.getInnerPoint(empty);
+      if (empty) {
+          std::cout<<"intersection is empty"<<std::endl;
+          exit(-1);
+      }
+      InnerBall.second = IntVP.getRad();
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
-  if(verbose){
+  if(verbose && annealing){
       std::cout<<"Inner ball center is: "<<std::endl;
       for(unsigned int i=0; i<n; i++){
           std::cout<<InnerBall.first[i]<<" ";
@@ -533,14 +572,20 @@ int main(const int argc, const char** argv)
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
-              } else if (!Vpoly) {
+              } else if (Vpoly) {
+                  vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
+              } else if (!interVpoly){
                   vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
               } else {
-                  vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
+                  vol = volume_gaussian_annealing(IntVP, var1, var2, InnerBall);
               }
           } else {
+              NT p_value = 0.1;
               if (Zono) {
                   vol = volume(ZP, var, var, InnerBall);
+              } else if (interVpoly) {
+                  typedef Ball<Point> Ball;
+                  vol = Inter_Vpoly_Vol<Ball, Hpolytope>(IntVP, p_value, e, round, var);
               } else if (!Vpoly) {
                   vol = volume(HP, var, var, InnerBall);
 
@@ -555,7 +600,6 @@ int main(const int argc, const char** argv)
                   //std::cout<<"number of facets = "<<HP2.num_of_hyperplanes()<<std::endl;
                   //std::cout<<"vol = "<<vol<<std::endl;
                   //return 1;
-                  NT p_value = 0.1;
                   //bool hyp_ann=false;
                   if (hyp_ann) {
                       vol = Vpoly_vol_hyp<Ball, Hpolytope>(VP, p_value, e, round, var);

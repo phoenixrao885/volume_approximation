@@ -202,6 +202,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
         // Compute the next gaussian
         next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var);
 
+
         curr_fn = 0;
         curr_its = 0;
         std::fill(lamdas.begin(), lamdas.end(), NT(0));

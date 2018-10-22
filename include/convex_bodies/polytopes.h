@@ -451,6 +451,7 @@ template <class Point, class  RNGType>
 class VPolytope{
 public:
     typedef Point PolytopePoint;
+    typedef RNGType rngtype;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -956,7 +957,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        initial_shifting(); // shift zonotope to the origin
+        //initial_shifting(); // shift zonotope to the origin
     }
 
 
