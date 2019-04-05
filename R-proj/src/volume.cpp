@@ -152,8 +152,13 @@ double volume (Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     unsigned int n;
+
     if (P.isNotNull()) {
         n = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+    } else if (A.isNotNull() && Aeq.isNotNull() && b.isNotNull() && beq.isNotNull()) {
+        n = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols() - Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).rows();
+    } else {
+        throw Rcpp::exception("Wrong inputs! you have to define a feasible region!");
     }
     unsigned int walkL;
 
@@ -265,11 +270,22 @@ double volume (Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 throw Rcpp::exception("Matrix A must have more rows than matrix Aeq!");
             }
         }
-        n = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols() - Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).rows();
-        Hpolytope HP = get_low_dimensional_poly<Hpolytope>(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
+
+        bool feas = is_feasible(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
+                                Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
+                                Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
+                                Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)));
+        if (!feas) {
+            Rf_warning("The region is not feasible!");
+            return 0.0;
+        }
+        Hpolytope HP;
+        std::pair<Hpolytope ,VT> low_res;
+        low_res = get_low_dimensional_poly<Hpolytope>(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
                                                            Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
                                                            Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
                                                            Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)));
+        HP = low_res.first;
         return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
                                          cdhr, rdhr, round);
     }

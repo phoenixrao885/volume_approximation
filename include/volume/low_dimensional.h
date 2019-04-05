@@ -9,7 +9,7 @@
 #define LOW_DIMENSIONAL_H
 
 template <class Polytope, class MT, class VT>
-Polytope get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq) {
+std::pair<Polytope, VT> get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq) {
 
     typedef typename Polytope::NT 	NT;
     Polytope HP;
@@ -28,7 +28,7 @@ Polytope get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq) {
 
     MT A2 = A*W;
     HP.init(n-m, A2, b);
-    return HP;
+    return std::pair<Polytope, VT>(HP,x);
 
 }
 
