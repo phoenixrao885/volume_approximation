@@ -46,6 +46,14 @@ public:
         return P1.num_of_vertices() + P2.num_of_vertices();
     }
 
+    MT get_mat() {
+        return P1.get_mat();
+    }
+
+    VT get_vec() {
+        return P1.get_vec();
+    }
+
     unsigned int upper_bound_of_hyperplanes() {
         return P1.upper_bound_of_hyperplanes() + P2.upper_bound_of_hyperplanes() ;
     }
