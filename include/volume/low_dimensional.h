@@ -1,5 +1,3 @@
-// [[Rcpp::depends(BH)]]
-
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
@@ -9,7 +7,7 @@
 #define LOW_DIMENSIONAL_H
 
 template <class Polytope, class MT, class VT>
-std::pair<Polytope, VT> get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq) {
+std::pair<Polytope, VT> get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq, MT &W) {
 
     typedef typename Polytope::NT 	NT;
     Polytope HP;
@@ -21,7 +19,7 @@ std::pair<Polytope, VT> get_low_dimensional_poly(MT A, VT b, MT Aeq, VT beq) {
     Eigen::JacobiSVD<MT> svd(Aeq.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
     MT T2 = svd.matrixU().transpose();
 
-    MT W(n,n-m);
+    W.resize(n,n-m);
     for (int i = 0; i < n-m; ++i) {
         W.col(i) = T2.col(m+i);
     }

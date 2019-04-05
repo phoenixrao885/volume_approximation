@@ -281,10 +281,11 @@ double volume (Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
         }
         Hpolytope HP;
         std::pair<Hpolytope ,VT> low_res;
+        MT W;
         low_res = get_low_dimensional_poly<Hpolytope>(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
                                                            Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
                                                            Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
-                                                           Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)));
+                                                           Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)), W);
         HP = low_res.first;
         return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
                                          cdhr, rdhr, round);
