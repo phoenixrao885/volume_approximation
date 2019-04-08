@@ -36,7 +36,35 @@ Moreover we have added some checks in order to throw excepions when boundary sam
 
 the output is:  
 `Error in sample_points(P, boundary = TRUE, N = 2000, WalkType = "Dikin") : `  
-`  Only Hit-an-Run can be used for boundary sampling!`
+`  Only Hit-an-Run can be used for boundary sampling!`  
+
+### 3. Hard  
+
+i) I have added an implementation for the computation of a low dimensional polytope given by a set of linear inequalities and a set of linear equalities. In the folder `./include/volume` I created the header file `low_dimensional.h` to implement the function `get_low_dimensional_poly()` which takes as input the matrices that define the linear inequalities and equalities and returns the matrices that define the linear inequalities of the corresponding low dimensional polytope. In addition, we modified the `Rcpp` function `sample_points()` to add the flags `A, b, Aeq, beq` for the input matrices. For example,  
+  
+`P=GenCube(3,'H')`  
+`A=P\$A`  
+`b=P\$b`  
+`Aeq = matrix(c(0,0,1),byrow = TRUE, nrow = 1)`  
+`beq = c(1)`  
+`volume(A=A, b=b, Aeq=Aeq, beq=beq)`  
+`> [1] 3.973613`  
+  
+while the exact value is 4 because the low dimensional polytope is a slice of the 3-dimensional cube.  
+  
+ii) I have also modified the function `sample_points()` to sample points from a low dimensional polytope. For example,  
+  
+`P=GenCube(3,'H')`  
+`A=P\$A`  
+`b=P\$b`  
+`Aeq = matrix(c(rnorm(3)),byrow = TRUE, nrow = 1)`  
+`beq = c(rnorm(1))`  
+`points = sample\_points(A=A, b=b, Aeq=Aeq, beq=beq, N=1000)`  
+`scatterplot3d(points[1,], points[2,], points[3,])`  
+  
+we get the Figure below,
+
+![alt text](https://github.com/TolisChal/volume_approximation/tree/gsoc19/R-proj/inst/gsoc19_tests_figs/low_sample.png)  
 
 ## B. Volume computation and sampling
 
