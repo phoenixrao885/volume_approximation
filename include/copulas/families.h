@@ -1,4 +1,4 @@
-// VolEsti (volume computation and sampling library)
+ // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
@@ -19,7 +19,7 @@ void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperpl
         //compmat = RetMat.block<i+W-1,d-1>(i,0);
         hyp = VT::Ones(d);
         for (int k = 0; k < d; ++k) {
-            for (int j = 0; j < W-1; ++j) {
+            for (int j = 0; j < W; ++j) {
                 hyp(k) = hyp(k) * (1.0 + RetMat(i+j, k));
             }
             hyp(k) = hyp(k) - 1.0;
@@ -31,6 +31,7 @@ void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperpl
         }
         ellipsoids.push_back(temp_ell);
     }
+    std::cout<<ellipsoids[0].row(0)<<std::endl;
     //allEll.reshape(0,0);
     //RetMat.reshape(0,0);
 }

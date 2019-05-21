@@ -30,6 +30,7 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
     std::cout<<"error = "<<error<<" prob = "<<prob<<" zp = "<<zp<<" min_ratio = "<<min_ratio<<std::endl;
     tot_points = int( ((1.0+error)/error)*((1.0+error)/error)*zp*zp*((1.0-min_ratio)/min_ratio) );
+    tot_points=1000000;
     std::cout<<"totpoints = "<<tot_points<<std::endl;
     std::cout<<"number of copulas = "<<copulas.size()<<std::endl;
 
