@@ -25,14 +25,19 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
     NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
     minIt = std::min_element(mins.begin(), mins.end());
     NT min_ratio = *minIt;
+    if (min_ratio==0.0) min_ratio = (1.0/NT(M))*(1.0/NT(M));
     int tot_points, count_ell, row, col, count = N;
 
+    std::cout<<"error = "<<error<<" prob = "<<prob<<" zp = "<<zp<<" min_ratio = "<<min_ratio<<std::endl;
     tot_points = int( ((1.0+error)/error)*((1.0+error)/error)*zp*zp*((1.0-min_ratio)/min_ratio) );
+    std::cout<<"totpoints = "<<tot_points<<std::endl;
+    std::cout<<"number of copulas = "<<copulas.size()<<std::endl;
 
     typename std::vector<MT>::iterator ellit;
     MT points(d, N), cons(K,N), vecs(d, N);
 
     while (count < tot_points) {
+        std::cout<<"count = "<<count<<std::endl;
 
         exp_simplex<NT, RNGType>(d, N, points);
         count += N;
@@ -43,12 +48,13 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
         for ( ;  ellit!=ellipsoids.end(); ++ellit, ++count_ell) {
 
-            copula = copulas[count_ell];
+            copula = MT::Zero(M,M);
             vecs = (*ellit) * points;
             hyp_vals = cons.row(count_ell);
-            for (int i = 0; i < N-1; ++i) {
+            //std::cout<<"hello"<<std::endl;
+            for (int i = 0; i < N; ++i) {
 
-                val_ell = points.col(i).transpose() * vecs.col(i);
+                val_ell = points.col(i).dot(vecs.col(i));
                 val_hyp = hyp_vals[i];
 
                 ell_consts = ells_consts.row(count_ell);

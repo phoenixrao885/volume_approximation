@@ -29,17 +29,24 @@ Rcpp::NumericMatrix get_copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     unsigned int MM = (M.isNotNull()) ? Rcpp::as<unsigned int>(M) : 100;
-    unsigned int NN = (N.isNotNull()) ? Rcpp::as<unsigned int>(N) : 100000;
+    unsigned int NN = (N.isNotNull()) ? Rcpp::as<unsigned int>(N) : 500000;
     unsigned int W = (Win.isNotNull()) ? Rcpp::as<unsigned int>(Win) : 60;
     NT e = (error.isNotNull()) ? Rcpp::as<double>(error) : 0.1;
     NT pr = (prob.isNotNull()) ? Rcpp::as<double>(prob) : 0.9;
 
-    int d = EllMats.ncol();
-    int K = EllMats.nrow() / d;
+    int d = EllMats.cols();
+    int K = EllMats.rows() / d;
+    std::cout<<EllMats.cols()<<" "<<EllMats.rows()<<"\n"<<std::endl;
+    std::cout<<"K = "<<K<<" d = "<<d<<std::endl;
 
     std::vector<MT> ellipsoids;
     MT hyperplanes(K, d);
     get_bodies<VT, NT>(Rcpp::as<MT>(RetMat), Rcpp::as<MT>(EllMats), ellipsoids,  hyperplanes, W);
+    std::cout<<"bodies ok"<<std::endl;
+    std::cout<<hyperplanes.cols()<<" "<<hyperplanes.rows()<<"\n"<<std::endl;
+    //for (int k = 0; k < 2; ++k) {
+        std::cout<<ellipsoids[0].cols()<<" "<<ellipsoids[0].rows()<<"\n"<<std::endl;
+    //}
     std::vector<MT> copulas = get_copulas_uniform<RNGType, VT> (ellipsoids, hyperplanes, e, pr, MM, NN);
 
     MT ret_copulas(K*MM,MM);
