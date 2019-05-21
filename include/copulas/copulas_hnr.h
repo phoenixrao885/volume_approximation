@@ -20,8 +20,15 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
     ells_consts = constants.first;
     hyps_consts = constants.second;
 
-    int tot_points, count_ell, row, col;
-    count = N;
+    typename std::vector<NT>::iterator minIt;
+    boost::math::normal dist(0.0, 1.0);
+    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
+    minIt = std::min_element(mins.begin(), mins.end());
+    NT min_ratio = *minIt;
+    int tot_points, count_ell, row, col, count = N;
+
+    tot_points = int( ((1.0+error)/error)*((1.0+error)/error)*zp*zp*((1.0-min_ratio)/min_ratio) );
+
     typename std::vector<MT>::iterator ellit;
     MT points(d, N), cons(K,N), ells_consts(K,M), hyps_consts(K,M), vecs(d, N);
 
@@ -36,9 +43,9 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
         for ( ;  ellit!=ellipsoids.end(); ++ellit, ++count_ell) {
 
-            copula = copulas(count_ell)
+            copula = copulas(count_ell);
             vecs = (*ellit) * points;
-            hyp_vals = cons.row(count_ell)
+            hyp_vals = cons.row(count_ell);
             for (int i = 0; i < N-1; ++i) {
 
                 val_ell = points.col(i).transpose() * vecs.col(i);

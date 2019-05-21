@@ -6,6 +6,33 @@
 #ifndef FAMILIES_H
 #define FAMILIES_H
 
+
+template <class MT, class VT, typename NT>
+void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperplanes, int W) {
+
+    int d = RetMat.cols(), L = RetMat.rows();
+    VT hyp(d);// = VT::Ones(d);
+    MT compmat(W, d);
+
+    for (int i = 0; i < L-W+1; ++i) {
+        //compmat = RetMat.block<i+W-1,d-1>(i,0);
+        hyp = VT::Ones(d);
+        for (int k = 0; k < d; ++k) {
+            for (int j = 0; j < W-1; ++j) {
+                hyp(k) = hyp(k) * (1.0 + RetMat(i+j, k));
+            }
+            hyp(k) = hyp(k) - 1.0;
+        }
+        hyperplanes.row(i) = hyp;
+
+        ellipsoids.push_back(allEll.block<i*d+d-1,d-1>(i*d,0));
+    }
+    //allEll.reshape(0,0);
+    //RetMat.reshape(0,0);
+}
+
+
+
 template <class MT, typename NT, class VT>
 std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, std::vector<MT> copulas, int M, int N,
                                 std::vector<NT> &mins) {
@@ -35,7 +62,7 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
         ell_vals.row(count_ell) = std::sort(ell_vals.row(count_ell).data(), ell_vals.row(count_ell).data()
                                                                             + ell_vals.row(count_ell).size());
 
-        for (i=1; i<M; i++) {
+        for (int i=1; i<M; i++) {
             row_vals = ell_vals.row(count_ell);
             ell_cons(count_ell, i - 1) = row_vals(((int) std::floor(i * (pos) * (NT(N)))));
 
