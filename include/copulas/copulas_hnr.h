@@ -7,18 +7,18 @@
 #define COPULAS_HNR_H
 
 
-template <class MT, class VT, typename NT>
+template < class RNGType, class VT, class MT, typename NT>
 std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplanes, NT error, NT prob, int M, int N) {
 
     int d = hyperplanes.row(0).size(), K = ellipsoids.size();
     NT min, val_ell, val_hyp;
     std::vector<NT> mins;
-    VT ell_consts(M), hyp_cosnts(M), hyp_vals(N);
+    VT ell_consts(M), hyp_consts(M), hyp_vals(N);
     MT copula(M,M);
     std::vector<MT> copulas;
-    std::pair<MT, MT> constants = get_constants(ellipsoids, hyperplanes, copulas, M, N, mins);
-    ells_consts = constants.first;
-    hyps_consts = constants.second;
+    std::pair<MT, MT> constants = get_constants<RNGType, VT>(ellipsoids, hyperplanes, copulas, M, N, mins);
+    MT ells_consts = constants.first;
+    MT hyps_consts = constants.second;
 
     typename std::vector<NT>::iterator minIt;
     boost::math::normal dist(0.0, 1.0);
@@ -30,11 +30,11 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
     tot_points = int( ((1.0+error)/error)*((1.0+error)/error)*zp*zp*((1.0-min_ratio)/min_ratio) );
 
     typename std::vector<MT>::iterator ellit;
-    MT points(d, N), cons(K,N), ells_consts(K,M), hyps_consts(K,M), vecs(d, N);
+    MT points(d, N), cons(K,N), vecs(d, N);
 
     while (count < tot_points) {
 
-        exp_simplex(d, N, points);
+        exp_simplex<NT, RNGType>(d, N, points);
         count += N;
         ellit = ellipsoids.begin();
 
@@ -43,7 +43,7 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
         for ( ;  ellit!=ellipsoids.end(); ++ellit, ++count_ell) {
 
-            copula = copulas(count_ell);
+            copula = copulas[count_ell];
             vecs = (*ellit) * points;
             hyp_vals = cons.row(count_ell);
             for (int i = 0; i < N-1; ++i) {
@@ -63,7 +63,7 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
                     }
                 }
                 for (int j = 0; j < M-1; ++j) {
-                    if (val_hyp < hyp_cosnts(j)){
+                    if (val_hyp < hyp_consts(j)){
                         col = j;
                         break;
                     }

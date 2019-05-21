@@ -7,9 +7,16 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include <chrono>
+#include <boost/random.hpp>
+#include <boost/math/distributions/students_t.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "simplex_samplers2.h"
+#include "families.h"
+#include "copulas_hnr.h"
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix EllMats,
+Rcpp::NumericMatrix get_copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix EllMats,
                              Rcpp::Nullable<unsigned int> Win = R_NilValue,
                              Rcpp::Nullable<unsigned int> M = R_NilValue,
                              Rcpp::Nullable<unsigned int> N = R_NilValue,
@@ -32,8 +39,8 @@ Rcpp::NumericMatrix copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix Ell
 
     std::vector<MT> ellipsoids;
     MT hyperplanes(K, d);
-    get_bodies (Rcpp::as<MT>(RetMat), Rcpp::as<MT>(EllMats), ellipsoids,  hyperplanes, W);
-    std::vector<MT> copulas = copulas_uniform (ellipsoids, hyperplanes, e, pr, MM, NN);
+    get_bodies<VT, NT>(Rcpp::as<MT>(RetMat), Rcpp::as<MT>(EllMats), ellipsoids,  hyperplanes, W);
+    std::vector<MT> copulas = get_copulas_uniform<RNGType, VT> (ellipsoids, hyperplanes, e, pr, MM, NN);
 
     MT ret_copulas(K*MM,MM);
     for (int i = 0; i < K; ++i) {

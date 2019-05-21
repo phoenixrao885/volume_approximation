@@ -99,6 +99,10 @@ copula2 <- function(h, E, numSlices, N) {
     .Call(`_volesti_copula2`, h, E, numSlices, N)
 }
 
+get_copulas <- function(RetMat, EllMats, Win = NULL, M = NULL, N = NULL, error = NULL, prob = NULL) {
+    .Call(`_volesti_get_copulas`, RetMat, EllMats, Win, M, N, error, prob)
+}
+
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.

@@ -7,12 +7,13 @@
 #define FAMILIES_H
 
 
-template <class MT, class VT, typename NT>
+template <class VT, typename NT, class MT>
 void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperplanes, int W) {
 
     int d = RetMat.cols(), L = RetMat.rows();
     VT hyp(d);// = VT::Ones(d);
     MT compmat(W, d);
+    MT temp_ell(d,d);
 
     for (int i = 0; i < L-W+1; ++i) {
         //compmat = RetMat.block<i+W-1,d-1>(i,0);
@@ -25,7 +26,10 @@ void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperpl
         }
         hyperplanes.row(i) = hyp;
 
-        ellipsoids.push_back(allEll.block<i*d+d-1,d-1>(i*d,0));
+        for (int l = 0; l < d; ++l) {
+            temp_ell.row(l) = allEll.row(i*d+l);
+        }
+        ellipsoids.push_back(temp_ell);
     }
     //allEll.reshape(0,0);
     //RetMat.reshape(0,0);
@@ -33,14 +37,14 @@ void get_bodies (MT RetMat, MT allEll, std::vector<MT> &ellipsoids,  MT &hyperpl
 
 
 
-template <class MT, typename NT, class VT>
+template <class RNGType, class VT, class MT, typename NT>
 std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, std::vector<MT> copulas, int M, int N,
                                 std::vector<NT> &mins) {
 
     MT copula(M, M);
     int d = hyperplanes.row(0).size(), K = ellipsoids.size(), row, col;
     MT points(d, N);
-    exp_simplex(d, N, points);
+    exp_simplex<NT, RNGType>(d, N, points);
 
     MT hyp_vals = hyperplanes * points;
     MT hyp_vals2 = hyp_vals;
@@ -48,7 +52,7 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
     VT row_vals(N), ell_row_vals(N);
 
     for (int i = 0; i < K; ++i) {
-        hyp_vals.row(i) = std::sort(hyp_vals.row(i).data(), hyp_vals.row(i).data() + hyp_vals.row(i).size())
+        std::sort(hyp_vals.row(i).data(), hyp_vals.row(i).data() + hyp_vals.row(i).size());
     }
 
     int count_ell = 0;
@@ -56,10 +60,10 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
     for (typename std::vector<MT>::iterator ellit = ellipsoids.end();  ellit!=ellipsoids.end(); ++ellit, ++count_ell) {
         vecs = (*ellit) * points;
         for (int i = 0; i < N; ++i) {
-            ell_vals(count_ell, i) = points.col(i).transpose() * vecs.col(i)
+            ell_vals(count_ell, i) = points.col(i).transpose() * vecs.col(i);
         }
         ell_row_vals = ell_vals.row(count_ell);
-        ell_vals.row(count_ell) = std::sort(ell_vals.row(count_ell).data(), ell_vals.row(count_ell).data()
+        std::sort(ell_vals.row(count_ell).data(), ell_vals.row(count_ell).data()
                                                                             + ell_vals.row(count_ell).size());
 
         for (int i=1; i<M; i++) {
@@ -69,7 +73,7 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
             row_vals = hyp_vals.row(count_ell);
             hyp_cons(count_ell, i - 1) = row_vals(((int) std::floor(i * (pos) * (NT(N)))));
         }
-        copula = MT::Zeros(M,M);
+        copula = MT::Zero(M,M);
         for (int k = 0; k < N; ++k) {
 
             row = -1;
