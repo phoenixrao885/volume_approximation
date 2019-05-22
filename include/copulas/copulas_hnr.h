@@ -117,12 +117,19 @@ std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, N
         }
     }
     p(d-1) = 0.0;
-    std::vector<VT> Js;
-    MT temp_mat(d,d);
+    MT temp_mat(d,d), D(K,d), V(K,d), Js(K,d);
+    VT Vals(K), dVals(K), Cvals(K), dCvals(K);
     for (int k = 0; k < K; ++k) {
+        ells_consts.row(k) = ells_consts.row(k) - VT::Ones(M-1)*ellipsoids[k](d-1,d-1);
+        hyps_consts.row(k) = hyps_consts.row(k) - VT::Ones(M-1)*hyperplanes(k,d-1);
+        hyperplanes = hyperplanes * T;
         temp_mat = ellipsoids[k]*T;
-        Js.push_back
-        ellipsoids[k] = T.transpose()*ellipsoids[k]*T;
+        Js.row(k) = 2.0 * temp_mat.row(d-1);
+        temp_mat = T.transpose()*ellipsoids[k]*T;
+        D.row(k) = temp_mat.diagonal();
+        V.row(k) = temp_mat*p;
+        Vals(k) = p.dot(V.row(k));
+        ellipsoids = T.transpose()*ellipsoids[k]*T;
     }
 
     typename std::vector<MT>::iterator ellit;
@@ -130,8 +137,54 @@ std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, N
 
     while (count < tot_points) {
 
+        coord;
+        lambda = update_coord();
+        lambda_prev = lambda;
+        dVals = 2.0*lambda*V.col(coord) + lambda*lambda*D.col(coord) + lambda * Js.col(coord);
+        Vals = Vals + dVals;
+        dCvals = lambda*hyperplanes.col(coord);
 
+        for (int i = 0; i < K; ++i) {
 
+            col = ccol(i);
+            row = crow(i);
+            if (dVals(i) >0.0) {
+                for (int j = row; j < M - 1; ++j) {
+                    if (Vals(i) < ells_consts(i, j)) {
+                        crow(i) = j;
+                        break;
+                    }
+                }
+                if (ccol(i) == col) ccol(i) = M - 1;
+            } else {
+                for (int j = 0; j <=row; ++j) {
+                    if (Vals(i) < ells_consts(i, j)) {
+                        crow(i) = j;
+                        break;
+                    }
+                }
+            }
+            if (dCvals(i)>0) {
+                for (int j = col; j < M-1; ++j) {
+                    if (Cvals(i) < hyps_consts(i, j)){
+                        ccol(i) = j;
+                        break;
+                    }
+                }
+                if (ccol(i) == col) ccol(i) = M - 1;
+
+            } else {
+                for (int j = 0; j <=col; ++j) {
+                    if (Cvals(i) < hyps_consts(i, j)){
+                        ccol(i) = j;
+                        break;
+                    }
+                }
+            }
+            //copula(crow(i), ccol(i)) = copula(crow(i), ccol(i)) + 1.0;
+            copulas[i] = copulas[i] + copula;
+            V.row(i) = V.row(i) + ellipsoids[i].col(coord);
+        }
     }
 
 }*/
