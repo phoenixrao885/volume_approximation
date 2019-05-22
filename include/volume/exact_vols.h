@@ -112,4 +112,44 @@ NT vol_Ali(std::vector<NT> plane, NT zit, unsigned int dim){
     return vol;
 }
 
+template <class VT,typename NT>
+NT vol_Ali(VT plane, NT zit){
+
+    NT vol;
+    int dim = plane.size();
+    unsigned int i,J,counter,K,k;
+    std::vector<NT> Y(dim+2 , 0.0), X(dim+2 , 0.0), a(dim+2 , 0.0);
+
+    J=0; K=0; counter=0;
+    if (zit<0){
+        X[0]=zit; J++;
+    }else{
+        Y[0]=zit; counter++;
+    }
+
+    for (i=0; i<dim; i++){
+
+        a[i]=0.0;
+
+        if (plane(i)+zit<0){
+            X[J]=plane(i)+zit;
+            J++;
+        }else{
+            Y[counter]=plane(i)+zit;
+            counter++;
+        }
+    }
+    K=dim+1-J;
+    a[0]=1.0; a[dim]=0.0; a[dim+1]=0.0;
+
+    for (i=0; i<J; i++){
+        for (k=1; k<K+1; k++){
+            a[k]=( Y[k-1]*a[k] - X[i]*a[k-1] ) / ( Y[k-1]-X[i] );
+        }
+    }
+
+    vol=a[K];
+    return vol;
+}
+
 #endif
