@@ -93,5 +93,30 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
 }
 
+/*
+template < class RNGType, class VT, class MT, typename NT>
+std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, NT error, NT prob, int M, int N) {
+
+    int d = hyperplanes.row(0).size(), K = ellipsoids.size();
+    NT min, val_ell, val_hyp;
+    std::vector<NT> mins;
+    VT ell_consts(M), hyp_consts(M), hyp_vals(N);
+    MT copula(M,M);
+    std::vector<MT> copulas;
+    std::pair<MT, MT> constants = get_constants<RNGType, VT>(ellipsoids, hyperplanes, copulas, M, N, mins);
+    MT ells_consts = constants.first;
+    MT hyps_consts = constants.second;
+
+    typename std::vector<MT>::iterator ellit;
+    MT points(d, N), cons(K,N), vecs(d, N);
+
+    while (count < tot_points) {
+
+
+
+    }
+
+}*/
+
 
 #endif

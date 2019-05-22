@@ -1,7 +1,7 @@
 library(volesti)
 library(tawny)
 
-starting_date = "2007-09-04"
+starting_date = "2007-06-04"
 stopping_date = "2009-01-05"
 
 MatReturns <- read.table("https://stanford.edu/class/ee103/data/returns.txt", sep=",")
@@ -19,9 +19,9 @@ cp = copulas(MatReturns[row1:row2,])
 
 indicators=c()
 numSlices=100
-for (i in 1:(dim(cp[1]/52))) {
+for (i in 1:(dim(cp)[1]/100)) {
   
-cop = cp[((i-1)*52+1):i*52,]
+cop = cp[((i-1)*100+1):(i*100),]
 blue_mass = 0
 red_mass = 0
 

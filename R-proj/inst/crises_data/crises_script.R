@@ -1,7 +1,7 @@
 library(volesti)
 
-starting_date = "2007-01-04"
-stopping_date = "2010-01-04"
+starting_date = "2007-06-04"
+stopping_date = "2009-01-05"
 
 MatReturns <- read.table("https://stanford.edu/class/ee103/data/returns.txt", sep=",")
 
@@ -14,5 +14,5 @@ MatReturns = matrix(as.numeric(MatReturns [,]),nrow = dim(MatReturns )[1],
 row1 = which(dates %in% starting_date)
 row2 = which(dates %in% stopping_date)
 
-indicators = compute_indicators(MatReturns =  MatReturns[row1:row2,], win_len = 60,
+indicators2 = compute_indicators(MatReturns =  MatReturns[row1:row2,], win_len = 60,
                                 numSlices = 100, N = 1000000)

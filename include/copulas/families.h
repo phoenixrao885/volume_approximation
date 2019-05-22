@@ -83,7 +83,7 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
         std::sort(row_vals.data(), row_vals.data() + row_vals.size());
         ell_vals.row(count_ell) = row_vals;
 
-        row_vals = ell_vals.row(count_ell);
+        //row_vals = ell_vals.row(count_ell);
         for (int i=1; i<M; i++) {
             ell_cons(count_ell, i - 1) = row_vals(((int) std::floor(i * (pos) * (NT(N)))));
         }
@@ -92,23 +92,26 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
         for (int i=1; i<M; i++) {
             hyp_cons(count_ell, i - 1) = row_vals(((int) std::floor(i * (pos) * (NT(N)))));
         }
+        //std::cout<<"hyp_cons = \n"<<hyp_cons.row(count_ell)<<"\n"<<std::endl;
+        //std::cout<<hyp_cons.row(count_ell).size()<<std::endl;
         copula = MT::Zero(M,M);
         for (int k = 0; k < N; ++k) {
 
             row = -1;
-            col = 1;
+            col = -1;
             for (int j = 0; j < M - 1; ++j) {
-                if (ell_row_vals(k) < ell_cons(j)) {
+                if (ell_row_vals(k) < ell_cons(count_ell, j)) {
                     row = j;
                     break;
                 }
             }
             for (int j = 0; j < M - 1; ++j) {
-                if (hyp_vals2(count_ell, k) < hyp_cons(j)) {
+                if (hyp_vals2(count_ell, k) < hyp_cons(count_ell, j)) {
                     col = j;
                     break;
                 }
             }
+            //if(col ==-1) std::cout<<"col = "<<col<<std::endl;
             if (col == -1) col = M - 1;
             if (row == -1) row = M - 1;
             copula(row, col) = copula(row, col) + 1.0;

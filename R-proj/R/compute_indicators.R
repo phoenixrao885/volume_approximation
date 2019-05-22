@@ -14,7 +14,7 @@ compute_indicators <- function(MatReturns, win_len = NULL, numSlices = NULL, N =
     
     W=i:(i+wl)
     #nR = MatReturns[W,]
-    E = cov(MatReturns[W,])
+    E = cov_shrink(MatReturns[W,])
     
     compRet = rep(1,nassets)
     for (j in 1:nassets) {
