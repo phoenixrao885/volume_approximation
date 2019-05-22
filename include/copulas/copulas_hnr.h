@@ -98,14 +98,32 @@ template < class RNGType, class VT, class MT, typename NT>
 std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, NT error, NT prob, int M, int N) {
 
     int d = hyperplanes.row(0).size(), K = ellipsoids.size();
-    NT min, val_ell, val_hyp;
-    std::vector<NT> mins;
+    NT min, val_ell, val_hyp, lambda, lambda_prev;
+    std::vector<NT> mins, hyp_ratios;
     VT ell_consts(M), hyp_consts(M), hyp_vals(N);
-    MT copula(M,M);
     std::vector<MT> copulas;
+    VT p(d), p_prev(d);
+    std::vector<int> crow, ccol;
     std::pair<MT, MT> constants = get_constants<RNGType, VT>(ellipsoids, hyperplanes, copulas, M, N, mins);
-    MT ells_consts = constants.first;
-    MT hyps_consts = constants.second;
+    MT ells_consts = constants.first, hyps_consts = constants.second, copula(M,M), T = Zero(d,d);
+
+    for (int i = 0; i < d; ++i) {
+        if(i==d-1) {
+            for (int j = 0; j < d; ++j) {
+                T(i, j) = -1.0;
+            }
+        } else {
+            T(i,i) = 1.0;
+        }
+    }
+    p(d-1) = 0.0;
+    std::vector<VT> Js;
+    MT temp_mat(d,d);
+    for (int k = 0; k < K; ++k) {
+        temp_mat = ellipsoids[k]*T;
+        Js.push_back
+        ellipsoids[k] = T.transpose()*ellipsoids[k]*T;
+    }
 
     typename std::vector<MT>::iterator ellit;
     MT points(d, N), cons(K,N), vecs(d, N);
