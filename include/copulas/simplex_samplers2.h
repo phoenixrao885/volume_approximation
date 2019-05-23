@@ -26,4 +26,25 @@ void exp_simplex (int d, int N, MT &points) {
     }
 }
 
+
+template <class VT, typename NT>
+void first_coord_point(VT &p, NT &cp_prev, int &coord, NT &lambda, NT &kapa) {
+
+    cp_prev = p.sum();
+    lambda = 1.0 - cp_prev;
+    lambda = (lambda + p(coord) )*kapa - p(coord);
+    p(coord) += lambda;
+
+}
+
+template <class VT, typename NT>
+void update_coord_point(VT &p, NT &cp_prev, int &coord, NT &lambda, NT &kapa) {
+
+    cp_prev += lambda;
+    lambda = 1.0 - cp_prev;
+    lambda = (lambda + p(coord) )*kapa - p(coord);
+    p(coord) += lambda;
+
+}
+
 #endif

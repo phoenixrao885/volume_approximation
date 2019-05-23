@@ -93,19 +93,20 @@ std::vector<MT> get_copulas_uniform (std::vector<MT> &ellipsoids, MT &hyperplane
 
 }
 
+
 /*
 template < class RNGType, class VT, class MT, typename NT>
 std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, NT error, NT prob, int M, int N) {
 
-    int d = hyperplanes.row(0).size(), K = ellipsoids.size();
-    NT min, val_ell, val_hyp, lambda, lambda_prev;
+    int d = hyperplanes.row(0).size(), K = ellipsoids.size(), coord;
+    NT min, val_ell, val_hyp, lambda, kapa, cp_prev;
     std::vector<NT> mins, hyp_ratios;
     VT ell_consts(M), hyp_consts(M), hyp_vals(N);
     std::vector<MT> copulas;
     VT p(d), p_prev(d);
-    std::vector<int> crow, ccol;
+    VT crow(K), ccol(K);
     std::pair<MT, MT> constants = get_constants<RNGType, VT>(ellipsoids, hyperplanes, copulas, M, N, mins);
-    MT ells_consts = constants.first, hyps_consts = constants.second, copula(M,M), T = Zero(d,d);
+    MT ells_consts = constants.first, hyps_consts = constants.second, copula(M,M), T = Zero(d,d), points(d, 2);
 
     for (int i = 0; i < d; ++i) {
         if(i==d-1) {
@@ -116,13 +117,27 @@ std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, N
             T(i,i) = 1.0;
         }
     }
+
+    exp_simplex (d, 2, points);
+    p = points.col(2);
     p(d-1) = 0.0;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::random::uniform_int_distribution<> uidist(0, d - 2);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+
+    coord = uidist(rng);
+    kapa = urdist(rng);
+    first_coord_point(p, cp_prev, coord, lambda, kapa);
+
     MT temp_mat(d,d), D(K,d), V(K,d), Js(K,d);
     VT Vals(K), dVals(K), Cvals(K), dCvals(K);
     for (int k = 0; k < K; ++k) {
         ells_consts.row(k) = ells_consts.row(k) - VT::Ones(M-1)*ellipsoids[k](d-1,d-1);
         hyps_consts.row(k) = hyps_consts.row(k) - VT::Ones(M-1)*hyperplanes(k,d-1);
         hyperplanes = hyperplanes * T;
+        Cvals = hyperplanes*p;
+
         temp_mat = ellipsoids[k]*T;
         Js.row(k) = 2.0 * temp_mat.row(d-1);
         temp_mat = T.transpose()*ellipsoids[k]*T;
@@ -130,16 +145,30 @@ std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, N
         V.row(k) = temp_mat*p;
         Vals(k) = p.dot(V.row(k));
         ellipsoids = T.transpose()*ellipsoids[k]*T;
+
+        crow(k) = M-1; ccol(k) = M-1;
+        for (int i = 0; i < M-1; ++i) {
+            if (Vals(k) < ells_consts(k, i)){
+                crow(k) = i;
+                break;
+            }
+        }
+        for (int i = 0; i < M-1; ++i) {
+            if (Cvals(k) < hyps_consts(k, i)) {
+                ccol(k) = i;
+                break;
+            }
+        }
     }
 
-    typename std::vector<MT>::iterator ellit;
-    MT points(d, N), cons(K,N), vecs(d, N);
+    //typename std::vector<MT>::iterator ellit;
 
     while (count < tot_points) {
 
-        coord;
-        lambda = update_coord();
-        lambda_prev = lambda;
+        coord = uidist(rng);
+        kapa = urdist(rng);
+        update_coord_point(p, cp_prev, coord, lambda, kapa);
+
         dVals = 2.0*lambda*V.col(coord) + lambda*lambda*D.col(coord) + lambda * Js.col(coord);
         Vals = Vals + dVals;
         dCvals = lambda*hyperplanes.col(coord);
@@ -181,7 +210,7 @@ std::vector<MT> get_copulas_hnr (std::vector<MT> &ellipsoids, MT &hyperplanes, N
                     }
                 }
             }
-            //copula(crow(i), ccol(i)) = copula(crow(i), ccol(i)) + 1.0;
+            copula(crow(i), ccol(i)) = copula(crow(i), ccol(i)) + 1.0;
             copulas[i] = copulas[i] + copula;
             V.row(i) = V.row(i) + ellipsoids[i].col(coord);
         }
