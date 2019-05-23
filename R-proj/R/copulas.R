@@ -1,5 +1,5 @@
 #' @export
-copulas <- function(MatReturns, Win = NULL, M = NULL, N = NULL, error = NULL, prob = NULL) {
+copulas <- function(MatReturns, Win = NULL, M = NULL, N = NULL, error = NULL, prob = NULL, hnr = NULL) {
   
   if (is.null(Win)) Win =60
   nrows = dim(MatReturns)[1]
@@ -11,6 +11,6 @@ copulas <- function(MatReturns, Win = NULL, M = NULL, N = NULL, error = NULL, pr
     E = rbind(E, cov_shrink(MatReturns[W,]))
   }
   
-  return( get_copulas(MatReturns, E, Win, M, N, error, prob) )
+  return( get_copulas(MatReturns, E, Win, M, N, error, prob, hnr) )
   
 }

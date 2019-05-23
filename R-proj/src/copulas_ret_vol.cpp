@@ -10,6 +10,7 @@
 #include <chrono>
 #include <boost/random.hpp>
 #include <boost/math/distributions/students_t.hpp>
+#include <boost/random/uniform_int.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "simplex_samplers2.h"
 #include "families.h"
@@ -21,7 +22,8 @@ Rcpp::NumericMatrix get_copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix
                              Rcpp::Nullable<unsigned int> M = R_NilValue,
                              Rcpp::Nullable<unsigned int> N = R_NilValue,
                              Rcpp::Nullable<double> error = R_NilValue,
-                             Rcpp::Nullable<double> prob = R_NilValue){
+                             Rcpp::Nullable<double> prob = R_NilValue,
+                             Rcpp::Nullable<bool> hnr = R_NilValue){
 
     typedef double NT;
     typedef boost::mt19937 RNGType;
@@ -33,6 +35,7 @@ Rcpp::NumericMatrix get_copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix
     unsigned int W = (Win.isNotNull()) ? Rcpp::as<unsigned int>(Win) : 60;
     NT e = (error.isNotNull()) ? Rcpp::as<double>(error) : 0.1;
     NT pr = (prob.isNotNull()) ? Rcpp::as<double>(prob) : 0.9;
+    bool HnR = (hnr.isNotNull()) ? Rcpp::as<bool>(hnr) : false;
 
     int d = EllMats.cols();
     int K = EllMats.rows() / d;
@@ -45,9 +48,14 @@ Rcpp::NumericMatrix get_copulas (Rcpp::NumericMatrix RetMat, Rcpp::NumericMatrix
     std::cout<<"bodies ok"<<std::endl;
     std::cout<<hyperplanes.cols()<<" "<<hyperplanes.rows()<<"\n"<<std::endl;
     //for (int k = 0; k < 2; ++k) {
-        std::cout<<ellipsoids[0].cols()<<" "<<ellipsoids[0].rows()<<"\n"<<std::endl;
+    //std::cout<<ellipsoids[0].cols()<<" "<<ellipsoids[0].rows()<<"\n"<<std::endl;
     //}
-    std::vector<MT> copulas = get_copulas_uniform<RNGType, VT> (ellipsoids, hyperplanes, e, pr, MM, NN);
+    std::vector <MT> copulas;
+    if (!HnR) {
+        copulas = get_copulas_uniform<RNGType, VT>(ellipsoids, hyperplanes, e, pr, MM, NN);
+    } else {
+        copulas =  get_copulas_hnr<RNGType, VT>(ellipsoids, hyperplanes, e, pr, MM, NN);
+    }
 
     MT ret_copulas(K*MM,MM);
     for (int i = 0; i < K; ++i) {

@@ -12,10 +12,13 @@ MatReturns = as.matrix(MatReturns[,-c(1,54)])
 MatReturns = matrix(as.numeric(MatReturns [,]),nrow = dim(MatReturns )[1],
                     ncol = dim(MatReturns )[2], byrow = FALSE)
 
+cp = copulas(MatReturns = MatReturns[1:61,], hnr = TRUE)
+cpp = copulas(MatReturns = MatReturns[1:61,])
+
 row1 = which(dates %in% starting_date)
 row2 = which(dates %in% stopping_date)
 
-cp = copulas(MatReturns[row1:row2,])
+#cp = copulas(MatReturns[row1:row2,])
 
 indicators=c()
 numSlices=100

@@ -42,7 +42,7 @@ void update_coord_point(VT &p, NT &cp_prev, int &coord, NT &lambda, NT &kapa) {
 
     cp_prev += lambda;
     lambda = 1.0 - cp_prev;
-    lambda = (lambda + p(coord) )*kapa - p(coord);
+    lambda = (-lambda - p(coord) )*kapa +lambda;// p(coord);
     p(coord) += lambda;
 
 }

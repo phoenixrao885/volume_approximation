@@ -20,7 +20,7 @@
      for (int i = 0; i < K; ++i) {
 
          hyp = hyperplanes.row(i);
-         std::cout << hyp << std::endl;
+         //std::cout << hyp << std::endl;
          cmin = hyp.minCoeff();
          cmax = hyp.maxCoeff();
          min = cmin;
@@ -90,7 +90,7 @@ std::pair<MT, MT> get_constants(std::vector<MT> &ellipsoids,  MT &hyperplanes, s
     int d = hyperplanes.row(0).size(), K = ellipsoids.size(), row, col;
     MT points(d, N);
     exp_simplex<NT, RNGType>(d, N, points);
-    std::cout<<points.cols()<<" "<<points.rows()<<"\n"<<std::endl;
+    //std::cout<<points.cols()<<" "<<points.rows()<<"\n"<<std::endl;
 
 
     MT hyp_vals = hyperplanes * points;

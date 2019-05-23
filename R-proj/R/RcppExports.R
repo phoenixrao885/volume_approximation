@@ -99,8 +99,8 @@ copula2 <- function(h, E, numSlices, N) {
     .Call(`_volesti_copula2`, h, E, numSlices, N)
 }
 
-get_copulas <- function(RetMat, EllMats, Win = NULL, M = NULL, N = NULL, error = NULL, prob = NULL) {
-    .Call(`_volesti_get_copulas`, RetMat, EllMats, Win, M, N, error, prob)
+get_copulas <- function(RetMat, EllMats, Win = NULL, M = NULL, N = NULL, error = NULL, prob = NULL, hnr = NULL) {
+    .Call(`_volesti_get_copulas`, RetMat, EllMats, Win, M, N, error, prob, hnr)
 }
 
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube
