@@ -372,6 +372,14 @@ public:
 
     void normalize() {}
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+    NT get_max_vert_norm() {
+        return -1.0;
+    }
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
         int count = 0, outvert;

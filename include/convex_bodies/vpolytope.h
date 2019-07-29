@@ -130,6 +130,34 @@ public:
     }
 
 
+    Point get_mean_of_vertices() {
+        std::vector<NT> vec(_d);
+        Point xc(_d), temp(_d);
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < _d; ++j) {
+                vec[j] = V(i,j);
+            }
+            temp = Point(_d, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(num_of_vertices()));
+
+        return xc;
+    }
+
+    NT get_max_vert_norm() {
+        NT rad =0.0;
+        NT rad_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            rad_iter = V.row(i).norm();
+            if(rad_iter>rad){
+                rad = rad_iter;
+            }
+        }
+        return rad;
+    }
+
+
     void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
         V = _V;

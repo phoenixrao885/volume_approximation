@@ -129,6 +129,11 @@ public:
     }
 
 
+    int num_of_vertices() {
+        return A.rows();
+    }
+
+
     void init(unsigned int dim, MT _A, VT _b) {
         _d = dim;
         A = _A;
@@ -511,6 +516,14 @@ public:
 
     MT get_T() {
         return A;
+    }
+
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+    NT get_max_vert_norm() {
+        return -1.0;
     }
 
     void normalize() {

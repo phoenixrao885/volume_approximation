@@ -13,6 +13,7 @@
 #include "volume.h"
 #include "ball_ann_vol.h"
 #include "hzono_vol.h"
+#include "compute_miniball.h"
 
 
 template <class Point, class NT, class Polytope>
@@ -20,8 +21,11 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
-                      bool rounding)
+                      bool rounding, int type)
 {
+
+    typedef typename Polytope::VT VT;
+
     bool rand_only=false,
          birk=false,
          verbose =false;
@@ -39,6 +43,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     std::pair<Point,NT> InnerB;
+    NT round_val = 1.0;
 
     if(InnerBall.isNotNull()) { //if it is given as an input
         // store internal point hat is given as input
@@ -51,6 +56,26 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
         // store the radius of the internal ball that is given as input
         InnerB.second = InnerVec[n];
     }else {
+        if (type == 2 && BAN) {
+            if(rounding) {
+                InnerB.first = P.get_mean_of_vertices();
+                InnerB.second = 0.0;
+                vars<NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng, urdist, urdist1,
+                                       -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, billiard);
+                std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerB,var2);
+                round_val = res_round.first;
+                rounding = false;
+                InnerB = compute_minball<Point, VT, NT>(P);
+                //InnerBall.first = Point(n);
+                //InnerBall.second = 0.0;
+                //rmax = VP.get_max_vert_norm();
+            } else {
+                InnerB = compute_minball<Point, VT, NT>(P);
+                //rmax = InnerBall.second;
+                //InnerBall.second = 0.0;
+                //VP.print();
+            }
+        }
         // no internal ball or point is given as input
         InnerB = P.ComputeInnerBall();
     }
@@ -80,7 +105,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
         vol = volume(P, var, InnerB);
     }
 
-    return vol;
+    return round_val * vol;
 }
 
 //' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -296,7 +321,7 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
 
             return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round);
+                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
         }
         case 2: {
             // Vpolytope
@@ -304,7 +329,7 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
 
             return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round);
+                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
         }
         case 3: {
             // Zonotope
@@ -312,7 +337,7 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
 
             return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round);
+                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -341,7 +366,7 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
             }
 
             return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round);
+                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
         }
     }
 
