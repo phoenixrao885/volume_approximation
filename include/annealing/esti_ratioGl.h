@@ -43,6 +43,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+            var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
         }
@@ -100,6 +101,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+            var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
         }
@@ -122,6 +124,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+            var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
         }

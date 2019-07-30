@@ -223,9 +223,11 @@ public:
                 B(i, j - 1) = pk[i] - p0[i];
             }
         }
+        std::cout<<"B = "<<B<<std::endl;
         Bg = B;
         Eigen::FullPivLU <MT> lu_decomp(B);
         int rank = lu_decomp.rank();
+        std::cout<<"rank = "<<rank<<std::endl;
         if(rank==dim) {  // check if the simplex is full dimensional
             done = true;
         }else {

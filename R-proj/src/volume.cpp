@@ -17,7 +17,7 @@
 
 
 template <class Point, class NT, class Polytope>
-double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nullable<Rcpp::NumericVector> InnerBall,
+Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nullable<Rcpp::NumericVector> InnerBall,
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
@@ -43,7 +43,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     std::pair<Point,NT> InnerB;
-    NT round_val = 1.0, diam;
+    NT round_val = 1.0, diam, nballs = 0.0;
 
     if(InnerBall.isNotNull()) { //if it is given as an input
         // store internal point hat is given as input
@@ -62,23 +62,23 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
                 InnerB.first = P.get_mean_of_vertices();
                 InnerB.second = 0.0;
                 vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2*P.get_max_vert_norm(), rng, urdist, urdist1,
-                                        -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, billiard);
+                                        -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, billiard,0.0,0.0);
                 std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
                 round_val = res_round.first;
                 rounding = false;
                 InnerB = compute_minball<Point, VT, NT>(P);
-                InnerB.second = P.ComputeInnerBall().second;
+                InnerB.second = 0.0;
                 //InnerBall.first = Point(n);
                 //InnerBall.second = 0.0;
-                //rmax = VP.get_max_vert_norm();
+                rmax = P.get_max_vert_norm();
             } else {
                 InnerB = compute_minball<Point, VT, NT>(P);
-                InnerB.second = P.ComputeInnerBall().second;
-                //rmax = InnerBall.second;
+                InnerB.second = 0.0;
+                rmax = P.get_max_vert_norm();
                 //InnerBall.second = 0.0;
                 //VP.print();
             }
-            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 2*P.get_max_vert_norm();
+            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : P.get_max_vert_norm();
         } else {
             // no internal ball or point is given as input
             InnerB = P.ComputeInnerBall();
@@ -89,20 +89,20 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second, diam, rng,urdist,urdist1,
-                          delta,verbose,rand_only,rounding,NN,birk,ball_walk,cdhr,rdhr,billiard);
+                          delta,verbose,rand_only,rounding,NN,birk,ball_walk,cdhr,rdhr,billiard, 0.0, 0.0);
     NT vol;
     if (CG) {
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk,
-                               cdhr,rdhr,billiard);
+                               cdhr,rdhr,billiard, 0.0, 0.0);
         vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, false, birk, ball_walk, cdhr, rdhr);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else if (BAN) {
-        vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
+        vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {
             //vars_ban <NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2 * n * n + 250, 220 + (n * n) / 10, 10, false);
-            vol = volesti_ball_ann(P, var, var_ban, InnerB);
+            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs);
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false);
@@ -112,7 +112,14 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
         vol = volume(P, var, InnerB);
     }
 
-    return round_val * vol;
+    Rcpp::NumericVector res(4);
+    res[0] = vol*round_val;
+    res[1] = nballs;
+    res[2] = var.BoundCalls;
+    res[3] = var.MemLps;
+
+    return res;
+    //return round_val * vol;
 }
 
 //' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -165,7 +172,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
 //' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
-double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
@@ -382,5 +389,5 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
         }
     }
 
-    return 0;
+    return Rcpp::NumericVector(4);
 }
