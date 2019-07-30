@@ -299,7 +299,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 delta = 4.0 * InnerBall.second / std::sqrt(NT(dim));
             }
         }
-        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second, 2.0*InnerBall.second, rng,urdist,urdist1,
                                delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);

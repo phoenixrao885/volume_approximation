@@ -267,6 +267,10 @@ public:
         return P.dimension();
     }
 
+    NT radius(){
+        return B.radius();
+    }
+
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         std::pair <NT, NT> polypair = P.line_intersect(r, v);

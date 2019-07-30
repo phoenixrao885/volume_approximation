@@ -138,7 +138,7 @@ void rand_point_generator(Polytope &P,
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
-        billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
+        billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -156,7 +156,7 @@ void rand_point_generator(Polytope &P,
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
             } else {
-                billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
+                billiard_walk(P, p, var.diameter, lamdas, Av, lambda,  var);
             }
         }
         randPoints.push_back(p);
@@ -202,7 +202,7 @@ void rand_point_generator(BallPoly &PBLarge,
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
-        billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var, true);
+        billiard_walk(PBLarge, p, var.diameter, lamdas, Av, lambda, var, true);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -222,7 +222,7 @@ void rand_point_generator(BallPoly &PBLarge,
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
             } else {
-                billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
+                billiard_walk(PBLarge, p, var.diameter, lamdas, Av, lambda, var);
             }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
@@ -266,7 +266,7 @@ void uniform_first_point(Polytope &P,
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
-        billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
+        billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
     }
     walk_len--;
 
@@ -282,7 +282,7 @@ void uniform_first_point(Polytope &P,
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         } else {
-            billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var);
+            billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var);
         }
     }
 }
@@ -320,7 +320,7 @@ void uniform_next_point(Polytope &P,
             p = (lambda * v) + p;
         }
     } else if(var.bill_walk) {
-        for (unsigned int j = 0; j < walk_len; j++) billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var);
+        for (unsigned int j = 0; j < walk_len; j++) billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var);
     }else {
         for (unsigned int j = 0; j < walk_len; j++) {
             rand_coord = uidist(rng);
@@ -381,7 +381,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
     unsigned int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    NT T = urdist(rng) * 2.0 * che_rad;
+    NT T = urdist(rng) * 1.0 * che_rad;
     Point v = get_direction<RNGType, Point, NT>(n);
 
     if (first) {

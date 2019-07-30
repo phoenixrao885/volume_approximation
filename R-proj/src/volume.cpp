@@ -21,7 +21,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
-                      bool rounding, int type)
+                      bool rounding, int type, Rcpp::Nullable<double> diameter)
 {
 
     typedef typename Polytope::VT VT;
@@ -43,7 +43,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     std::pair<Point,NT> InnerB;
-    NT round_val = 1.0;
+    NT round_val = 1.0, diam;
 
     if(InnerBall.isNotNull()) { //if it is given as an input
         // store internal point hat is given as input
@@ -55,37 +55,44 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
         InnerB.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
         InnerB.second = InnerVec[n];
+        diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 2*InnerB.second;
     }else {
         if (type == 2 && BAN) {
-            if(rounding) {
+            if (rounding) {
                 InnerB.first = P.get_mean_of_vertices();
                 InnerB.second = 0.0;
-                vars<NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng, urdist, urdist1,
-                                       -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, billiard);
-                std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerB,var2);
+                vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2*P.get_max_vert_norm(), rng, urdist, urdist1,
+                                        -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, billiard);
+                std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
                 round_val = res_round.first;
                 rounding = false;
                 InnerB = compute_minball<Point, VT, NT>(P);
+                InnerB.second = P.ComputeInnerBall().second;
                 //InnerBall.first = Point(n);
                 //InnerBall.second = 0.0;
                 //rmax = VP.get_max_vert_norm();
             } else {
                 InnerB = compute_minball<Point, VT, NT>(P);
+                InnerB.second = P.ComputeInnerBall().second;
                 //rmax = InnerBall.second;
                 //InnerBall.second = 0.0;
                 //VP.print();
             }
+            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 2*P.get_max_vert_norm();
+        } else {
+            // no internal ball or point is given as input
+            InnerB = P.ComputeInnerBall();
+            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 2*InnerB.second;
         }
-        // no internal ball or point is given as input
-        InnerB = P.ComputeInnerBall();
+
     }
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second, diam, rng,urdist,urdist1,
                           delta,verbose,rand_only,rounding,NN,birk,ball_walk,cdhr,rdhr,billiard);
     NT vol;
     if (CG) {
-        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
+        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk,
                                cdhr,rdhr,billiard);
         vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
@@ -164,7 +171,8 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
                 Rcpp::Nullable<std::string> WalkType = R_NilValue,
                 Rcpp::Nullable<bool> rounding = R_NilValue,
-                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue) {
+                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
+                Rcpp::Nullable<double> diameter = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -320,24 +328,27 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
 
-            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
+            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
+                                             ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
+                                             round, type, diameter);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
 
-            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
+            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
+                                             ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
+                                             round, type, diameter);
         }
         case 3: {
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
 
-            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
+            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
+                                             ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
+                                             round, type, diameter);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -365,8 +376,9 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
 
             }
 
-            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
-                                             alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, round, type);
+            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
+                                             ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
+                                             round, type, diameter);
         }
     }
 
