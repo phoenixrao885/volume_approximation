@@ -21,7 +21,8 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
-NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs) {
+NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs,
+                    NT ii=0.3) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;
@@ -65,8 +66,9 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     P.shift(c_e);
     P.normalize();
 
+    //std::cout<<"ii = "<<ii<<std::endl;
     if (verbose) std::cout << "Computing ball annealing..." << std::endl;
-    get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var,rmax);
+    get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var,rmax,ii);
     var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
@@ -95,7 +97,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     //std::cout<<"after 1-ratio"<<std::endl;
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter) {
         Pb = PolyBall(P, *balliter);
-        var.diameter = 0.3*2.0 * Pb.radius();
+        var.diameter = ii*2.0 * Pb.radius();
         vol *= (!window2) ? 1 / esti_ratio_interval<RNGType, Point>(Pb, *(balliter + 1), *(ratioiter + 1), er1,
                 win_len, N * nu, prob, var) : 1 / esti_ratio<RNGType, Point>(Pb, *balliter, *ratioiter, er1,
                                                                              win_len, N * nu, var);

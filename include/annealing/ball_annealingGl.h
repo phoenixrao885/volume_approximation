@@ -164,7 +164,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
 
 template <class PolyBall, class RNGType,class ball, class Polytope, class Parameters, typename NT>
 void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT lb, NT ub, NT radius, NT alpha, Parameters &var, NT rmax = 0.0) {
+                               NT lb, NT ub, NT radius, NT alpha, Parameters &var, NT rmax = 0.0, NT ii=0.3) {
 
     typedef typename Polytope::PolytopePoint Point;
     typedef typename Polytope::MT MT;
@@ -195,7 +195,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
 
     while (true) {
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
-        var.diameter = 0.3*2.0*zb_it.radius();
+        var.diameter = ii*2.0*zb_it.radius();
         q=Point(n);
         randPoints.clear();
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);

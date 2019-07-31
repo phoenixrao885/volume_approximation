@@ -21,7 +21,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
-                      bool rounding, int type, Rcpp::Nullable<double> diameter)
+                      bool rounding, int type, Rcpp::Nullable<double> diameter, double ii)
 {
 
     typedef typename Polytope::VT VT;
@@ -78,7 +78,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                 //InnerBall.second = 0.0;
                 //VP.print();
             }
-            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 0.3*P.comp_diam();
+            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : ii*P.comp_diam();
         } else {
             // no internal ball or point is given as input
             InnerB = P.ComputeInnerBall();
@@ -104,7 +104,8 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
         vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {
             //vars_ban <NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2 * n * n + 250, 220 + (n * n) / 10, 10, false);
-            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs);
+            //std::cout<<"ii = "<<ii<<std::endl;
+            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, ii);
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
@@ -182,7 +183,8 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
                 Rcpp::Nullable<std::string> WalkType = R_NilValue,
                 Rcpp::Nullable<bool> rounding = R_NilValue,
                 Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
-                Rcpp::Nullable<double> diameter = R_NilValue) {
+                Rcpp::Nullable<double> diameter = R_NilValue,
+                Rcpp::Nullable<double> iii = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -200,7 +202,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     unsigned int win_len = 4 * n * n + 500, N = 500 * 2 + n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
     double C = 2.0, ratio = 1.0 - 1.0 / (NT(n)), frac = 0.1, e, delta = -1.0,
-            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
+            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, ii=0.3;
 
     if (!rounding.isNotNull()) {
         round = false;
@@ -280,6 +282,9 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     }else {
         throw Rcpp::exception("Unknown method!");
     }
+    if (iii.isNotNull()) {
+        ii = Rcpp::as<NT>(iii);
+    }
 
     if(Parameters.isNotNull()) {
 
@@ -340,7 +345,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter);
+                                             round, type, diameter, ii);
         }
         case 2: {
             // Vpolytope
@@ -349,7 +354,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter);
+                                             round, type, diameter, ii);
         }
         case 3: {
             // Zonotope
@@ -358,7 +363,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter);
+                                             round, type, diameter, ii);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -388,7 +393,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter);
+                                             round, type, diameter, ii);
         }
     }
 
