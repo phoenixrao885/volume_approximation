@@ -195,7 +195,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
 
     while (true) {
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
-        var.diameter = zb_it.radius();
+        var.diameter = 0.3*2.0*zb_it.radius();
         q=Point(n);
         randPoints.clear();
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);

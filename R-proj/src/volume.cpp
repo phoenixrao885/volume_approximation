@@ -78,7 +78,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                 //InnerBall.second = 0.0;
                 //VP.print();
             }
-            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 0.5*P.comp_diam();
+            diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : 0.3*P.comp_diam();
         } else {
             // no internal ball or point is given as input
             InnerB = P.ComputeInnerBall();

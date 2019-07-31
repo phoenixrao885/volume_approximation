@@ -388,7 +388,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
     unsigned int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    NT T = urdist(rng) * 1.0 * che_rad;
+    NT T = urdist(rng) * che_rad;
     Point v = get_direction<RNGType, Point, NT>(n);
 
     if (first) {
