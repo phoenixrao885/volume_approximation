@@ -179,6 +179,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     //std::cout<<"first ball computed"<<std::endl;
     ratio0 = ratio;
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
+    var.TotSteps = var.TotSteps + NT(Ntot);
     //std::cout<<"N points sampled from P"<<std::endl;
 
     if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true, var)) {
@@ -198,6 +199,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
         q=Point(n);
         randPoints.clear();
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
+        var.TotSteps = var.TotSteps + NT(Ntot);
         //std::cout<<"N points sampled from BP"<<std::endl;
 
         if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true, var)) {

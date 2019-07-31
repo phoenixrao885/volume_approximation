@@ -380,6 +380,10 @@ public:
         return -1.0;
     }
 
+    NT comp_diam() {
+        return -1.0;
+    }
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
         int count = 0, outvert;

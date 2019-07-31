@@ -526,6 +526,10 @@ public:
         return -1.0;
     }
 
+    NT comp_diam() {
+        return -1.0;
+    }
+
     void normalize() {
 
         NT row_norm;

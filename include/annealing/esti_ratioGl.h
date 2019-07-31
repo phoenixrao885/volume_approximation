@@ -46,6 +46,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
             var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
+            var.TotSteps = var.TotSteps + 1.0;
         }
         if(Pb2.is_in(p)==-1) countIn = countIn + 1.0;
 
@@ -116,6 +117,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
         if (index == W) index = 0;
     }
+    var.TotSteps = var.TotSteps + NT(W);
 
     boost::math::normal dist(0.0, 1.0);
     NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0)), m=sum/NT(W), s;
@@ -127,6 +129,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
             var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
+            var.TotSteps = var.TotSteps + 1.0;
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 

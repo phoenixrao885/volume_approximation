@@ -89,7 +89,8 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT Her = e/(2.0*std::sqrt(NT(mm2)));
 
     var_g.error = Her/2.0;
-    vol = volume_gaussian_annealing(HP, var_g, var, InnerBall);
+    NT nballs;
+    vol = volume_gaussian_annealing(HP, var_g, var, InnerBall,nballs);
 
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;
     if (!window2) {

@@ -72,7 +72,7 @@ public:
         num_of_hyp += nom / denom;
 
         res = num_of_hyp;
-        return res;
+        return _d+1;
     }
 
 
@@ -155,6 +155,21 @@ public:
             }
         }
         return rad;
+    }
+
+    NT comp_diam() {
+        NT diam = 0.0;
+        NT diam_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < num_of_vertices(); ++j) {
+                if(i != j) {
+                    diam_iter = (V.row(i) - V.row(j)).norm();
+                    if (diam_iter > diam) diam = diam_iter;
+                }
+            }
+        }
+
+        return diam;
     }
 
 

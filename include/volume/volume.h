@@ -125,6 +125,7 @@ NT volume(Polytope &P,
         //use a large walk length e.g. 1000
         
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        var.TotSteps = var.TotSteps + NT(50*n);
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         
         
@@ -133,6 +134,7 @@ NT volume(Polytope &P,
         if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
         #endif
         rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
+        var.TotSteps = var.TotSteps + NT(rnum-1);
         
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
         #ifdef VOLESTI_DEBUG
@@ -236,6 +238,7 @@ NT volume(Polytope &P,
 
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
+            var.TotSteps = var.TotSteps + NT(rnum-nump_PBLarge);
 
             vol *= NT(rnum)/NT(nump_PBSmall);
 
@@ -268,7 +271,8 @@ template <class Polytope, class UParameters, class GParameters, class Point, typ
 NT volume_gaussian_annealing(Polytope &P,
                              GParameters &var,  // constans for volume
                              UParameters &var2,
-                             std::pair<Point,NT> InnerBall) {
+                             std::pair<Point,NT> InnerBall,
+                             NT &nballs) {
     //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename UParameters::RNGType RNGType;
@@ -341,6 +345,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     unsigned int mm = a_vals.size()-1, j=0;
+    nballs = NT(mm);
 
     #ifdef VOLESTI_DEBUG
     if(print){
@@ -392,6 +397,7 @@ NT volume_gaussian_annealing(Polytope &P,
         while(!done || (*itsIt)<min_steps){
 
             gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+            var.TotSteps = var.TotSteps + 1.0;
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
