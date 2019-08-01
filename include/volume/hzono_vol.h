@@ -14,7 +14,7 @@
 
 template <class Hpolytope, class Zonotope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
 NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
-              std::pair<Point,NT> &InnerB) {
+              std::pair<Point,NT> &InnerB, NT &nballs, Rcpp::Function diam_zono) {
 
     typedef typename Zonotope::VT VT;
     typedef typename Zonotope::MT MT;
@@ -79,6 +79,9 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT p_value = 0.1;
     ZonoHP zb1, zb2;
 
+    NT ole = Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()),-1.0,1.0));
+    std::cout<<"ole = "<<ole<<std::endl;
+
     get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var);
 
     int mm=HPolySet.size()+2;
@@ -89,8 +92,8 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT Her = e/(2.0*std::sqrt(NT(mm2)));
 
     var_g.error = Her/2.0;
-    NT nballs;
-    vol = volume_gaussian_annealing(HP, var_g, var, InnerBall,nballs);
+    NT nballs2;
+    vol = volume_gaussian_annealing(HP, var_g, var, InnerBall,nballs2);
 
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;
     if (!window2) {

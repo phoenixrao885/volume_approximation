@@ -21,7 +21,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
-                      bool rounding, int type, Rcpp::Nullable<double> diameter, double ii)
+                      bool rounding, int type, Rcpp::Nullable<double> diameter, double ii, Rcpp::Function diam_zono)
 {
 
     typedef typename Polytope::VT VT;
@@ -109,7 +109,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
-            vol = vol_hzono<HPolytope<Point> > (P, var, var_ban, varg, InnerB);
+            vol = vol_hzono<HPolytope<Point> > (P, var, var_ban, varg, InnerB,nballs,diam_zono);
         }
     }else {
         vol = volume(P, var, InnerB);
@@ -176,7 +176,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
 //' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
@@ -345,7 +345,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii);
+                                             round, type, diameter, ii, diam_zono);
         }
         case 2: {
             // Vpolytope
@@ -354,7 +354,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii);
+                                             round, type, diameter, ii, diam_zono);
         }
         case 3: {
             // Zonotope
@@ -363,7 +363,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii);
+                                             round, type, diameter, ii, diam_zono);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -393,7 +393,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii);
+                                             round, type, diameter, ii, diam_zono);
         }
     }
 

@@ -1,23 +1,25 @@
 
 
-comp_diam_hpoly_zono <- function(P){
+comp_diam_hpoly_zono <- function(G,l,u){
   
-  d = dim(P$G)[2]
-  k = dim(P$G)[1]
+  d = dim(G)[1]
+  k = dim(G)[2]
   
-  G = t(P$G)
+  #G = t(P$G)
 
-  ub = rep(1, k)
-  lb = rep(-1, k)
+  ub = rep(u, k)
+  lb = rep(l, k)
 
   sigma = t(G)%*%G
   sigma = (sigma+t(sigma))/2
+  
+  sigma = matrix(as.numeric(Matrix::nearPD(sigma)$mat), nrow = k, ncol = k, byrow = TRUE)
   
   st=eigen(sigma)
   Q=st$vectors
   Q=t(Q[,(d+1):k])
   
-  x0 = TruncatedNormal::mvrandn(l = rep(-1,k), u = rep(1,k), Sig = sigma,n=1)
+  x0 = TruncatedNormal::mvrandn(l = lb, u = ub, Sig = sqrt(d)*sigma, n=1)
   Qx = Q%*%x0
 
   relvar <- function(x){
@@ -47,10 +49,10 @@ comp_diam_hpoly_zono <- function(P){
     #x1 = retList$solution
     #retList = fminsearch(x0=x0,fn=relvar.rev,lower=lb, upper=ub,method = "Hooke-Jeeves")NLOPT_GN_CRS2_LM
   #}
-  print(x1)
-  retList = nloptr(x0=x1,eval_f=relvar,eval_grad_f=eval_grad_f,lb=lb, ub=ub, opts = list("algorithm"="NLOPT_LD_SLSQP"),eval_g_eq=eval_g_eq,eval_jac_g_eq=eval_jac_g_eq)
+  #print(x1)
+  retList = nloptr::nloptr(x0=x1,eval_f=relvar,eval_grad_f=eval_grad_f,lb=lb, ub=ub, opts = list("algorithm"="NLOPT_LD_SLSQP"),eval_g_eq=eval_g_eq,eval_jac_g_eq=eval_jac_g_eq)
   x1 = retList$solution
-  print(x1)
+  #print(x1)
   return(sqrt(sum((G%*%x1)^2)))
 }
 
