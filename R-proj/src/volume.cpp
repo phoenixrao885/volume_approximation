@@ -202,7 +202,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     unsigned int win_len = 4 * n * n + 500, N = 500 * 2 + n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
     double C = 2.0, ratio = 1.0 - 1.0 / (NT(n)), frac = 0.1, e, delta = -1.0,
-            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, ii=0.3;
+            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, ii=0.4;
 
     if (!rounding.isNotNull()) {
         round = false;

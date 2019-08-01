@@ -43,6 +43,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
 
         randPoints.clear();
         rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, variter);
+        //var.TotSteps = var.TotSteps + NT(1200);
 
         too_few = false;
 
@@ -113,6 +114,7 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
     std::list<Point> randPoints;
     Point q(n);
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
+    var.TotSteps = var.TotSteps + NT(Ntot);
     HPolytope HP2 = HP;
     if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true,var)) {
         ratios.push_back(ratio);
@@ -132,6 +134,7 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         q=Point(n);
         randPoints.clear();
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
+        var.TotSteps = var.TotSteps + NT(Ntot);
         if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true,var)) {
             ratios.push_back(ratio);
             if(print) std::cout<<"number of hpolys = "<<HPolySet.size()<<std::endl;

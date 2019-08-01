@@ -22,7 +22,7 @@
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
 NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs,
-                    NT ii=0.3) {
+                    NT ii=0.4) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;
