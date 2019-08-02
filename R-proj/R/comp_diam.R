@@ -30,6 +30,6 @@ comp_diam <- function(P){
   DD = t(G)%*%G
   
   DD = (DD+t(DD))/2
-  return(sqrt(t(solution)%*%DD%*%solution))
+  return(2*sqrt(abs(t(solution)%*%DD%*%solution)))
   
 }

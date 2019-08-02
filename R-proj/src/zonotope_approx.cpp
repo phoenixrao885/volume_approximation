@@ -27,7 +27,7 @@
 //'
 //' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
 // [[Rcpp::export]]
-Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_NilValue,
+Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Nullable<bool> fit_ratio = R_NilValue,
                         Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                         Rcpp::Nullable<double> error = R_NilValue,
                         Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
@@ -174,7 +174,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             vars_g<NT, RNGType> varg(n, 1, 1000 + n * n / 2, 6*n*n+500, 1, e, InnerB.second, rng, 2.0, 0.1,
                                      1.0 - 1.0 / (NT(n)), delta, false, false, false, false, false, false,
                                      false, true, false, 0.0, 0.0);
-            vol = vol_hzono<Hpolytope> (ZP, var, var_ban, varg, InnerB);
+            NT nballs2;
+            vol = vol_hzono<Hpolytope> (ZP, var, var_ban, varg, InnerB, nballs2, diam_zono);
         }
         ratio = std::pow(vol_red / vol, 1.0/NT(n));
     }

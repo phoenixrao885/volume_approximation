@@ -13,6 +13,7 @@ private:
     Zonotope    Z;
     HPolytope HP;
 public:
+    typedef typename Zonotope::VT VT;
     typedef typename HPolytope::NT NT;
     typedef typename HPolytope::PolytopePoint Point;
 
@@ -47,6 +48,11 @@ public:
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
+    }
+
+    NT get_vec_coeff(unsigned int i) {
+        VT b = HP.get_vec();
+        return b(i);
     }
 
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {

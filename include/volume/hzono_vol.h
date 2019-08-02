@@ -79,8 +79,8 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT p_value = 0.1;
     ZonoHP zb1, zb2;
 
-    NT ole = Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()),-1.0,1.0));
-    std::cout<<"ole = "<<ole<<std::endl;
+
+    //std::cout<<"ole = "<<ole<<std::endl;
 
     get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var);
 
@@ -97,7 +97,13 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
 
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;
     if (!window2) {
-        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var);
+        UParameters var2 = var;
+        var2.cdhr_walk = true;
+        var2.ball_walk = false;
+        var2.rdhr_walk = false;
+        var2.bill_walk = false;
+        var2.walk_steps = 10+2*n;
+        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var2);
     } else {
         vol *= esti_ratio<RNGType, Point>(HP2, ZP, ratio, er0, var_g.W, N*nu, var);
     }
@@ -126,6 +132,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
             zb1 = ZonoHP(ZP,HPolySet[i]);
             b2 = HPolySet[i+1];
             if(!window2) {
+                var.diameter = 0.6*Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), -zb1.get_vec_coeff(0), zb1.get_vec_coeff(0)));
                 vol = vol / esti_ratio_interval<RNGType, Point>(zb1, b2, ratios[i], er1, win_len, N*nu, prob, var);
             } else {
                 vol = vol / esti_ratio<RNGType, Point>(zb1, b2, ratios[i], er1, var_g.W, N*nu, var);
@@ -134,6 +141,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
 
         zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
         if (!window2) {
+            var.diameter = 0.6*Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), -zb1.get_vec_coeff(0), zb1.get_vec_coeff(0)));
             vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
         } else {
             vol = vol / esti_ratio<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, var_g.W, N*nu, var);
