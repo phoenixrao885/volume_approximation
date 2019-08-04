@@ -52,8 +52,8 @@ comp_diam_hpoly_zono <- function(G,l,u){
   #print(x1)
   retList = nloptr::nloptr(x0=x1,eval_f=relvar,eval_grad_f=eval_grad_f,lb=lb, ub=ub, opts = list("algorithm"="NLOPT_LD_SLSQP"),eval_g_eq=eval_g_eq,eval_jac_g_eq=eval_jac_g_eq)
   x1 = retList$solution
-  #print(x1)
-  return(sqrt(sum((G%*%x1)^2)))
+  print(sqrt(sum((G%*%x1)^2)))
+  return(2*sqrt(sum((G%*%x1)^2)))
 }
 
 

@@ -113,7 +113,9 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
     NT ratio;
     std::list<Point> randPoints;
     Point q(n);
+    std::cout<<"sampling N points"<<std::endl;
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
+    std::cout<<"sampling completed"<<std::endl;
     var.TotSteps = var.TotSteps + NT(Ntot);
     HPolytope HP2 = HP;
     if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true,var)) {

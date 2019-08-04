@@ -28,7 +28,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
 
     bool rand_only=false,
          birk=false,
-         verbose =false;
+         verbose =true;
     unsigned int n_threads=1;
 
     //unsigned int m;//=A.nrow()-1;

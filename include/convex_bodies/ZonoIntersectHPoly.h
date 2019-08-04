@@ -55,6 +55,10 @@ public:
         return b(i);
     }
 
+    VT get_vec() {
+        return HP.get_vec();
+    }
+
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
         std::pair <NT, NT> polypair = HP.line_intersect(r, v, Av, Ar);
