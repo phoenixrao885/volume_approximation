@@ -28,7 +28,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
 
     bool rand_only=false,
          birk=false,
-         verbose =true;
+         verbose =false;
     unsigned int n_threads=1;
 
     //unsigned int m;//=A.nrow()-1;
@@ -71,14 +71,19 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                 //InnerBall.first = Point(n);
                 //InnerBall.second = 0.0;
                 rmax = P.get_max_vert_norm();
+                //std::cout<<"is_in = "<<P.is_in(Point(n))<<std::endl;
+                //P.get_mean_of_vertices().print();
             } else {
                 InnerB = compute_minball<Point, VT, NT>(P);
                 InnerB.second = 0.0;
                 rmax = P.get_max_vert_norm();
+
                 //InnerBall.second = 0.0;
                 //VP.print();
             }
+            //std::cout<<"ii = "<<ii<<std::endl;
             diam = (diameter.isNotNull()) ? Rcpp::as<NT>(diameter) : ii*P.comp_diam();
+            //std::cout<<"diameter = "<<diam<<std::endl;
         } else {
             // no internal ball or point is given as input
             InnerB = P.ComputeInnerBall();

@@ -30,6 +30,7 @@ bool check_converg001(ConvexBody &P, PointList &randPoints, NT lb, NT ub, bool &
                 boost::math::students_t dist(ratios.size() - 1);
                 mv = getMeanVariance(ratios);
                 ratio = mv.first;
+                //std::cout<<"precheck ratio = "<<ratio<<std::endl;
                 rs = std::sqrt(mv.second);
                 T = rs * (boost::math::quantile(boost::math::complement(dist, alpha_check / 2.0))
                           / std::sqrt(NT(ratios.size())));
@@ -45,6 +46,7 @@ bool check_converg001(ConvexBody &P, PointList &randPoints, NT lb, NT ub, bool &
     if(precheck) alpha *= 0.5;
     mv = getMeanVariance(ratios);
     ratio = mv.first;
+    //std::cout<<"ratio = "<<ratio<<std::endl;
     rs = std::sqrt(mv.second);
     boost::math::students_t dist(nu - 1);
     T = rs*(boost::math::quantile(boost::math::complement(dist, alpha))
@@ -105,6 +107,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
     std::list<Point> randPoints;
     Point p(n);
 
+    //std::cout<<"rmax = "<<rmax<<" radius = "<<radius<<std::endl;
     if(rmax>0.0) {
         for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rmax));
@@ -119,8 +122,10 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         rmax = 2 * std::sqrt(NT(n)) * radius;
     }
     NT rad1 = radius;
+    //std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
 
     while(!bisection_int) {
+        //std::cout<<"ole!"<<" rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
 
         randPoints.clear();
         too_few = false;
@@ -142,6 +147,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
     while(true) {
 
         rad_med = 0.5*(rad1+rmax);
+        //std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<" rad_med = "<<rad_med<<std::endl;
         randPoints.clear();
         too_few = false;
 
@@ -149,6 +155,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
 
         if(check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false, var)) {
             B0 = ball(Point(n), rad_med*rad_med);
+            //std::cout<<"done, ratio = "<<ratio<<std::endl;
             return;
         }
 
@@ -169,6 +176,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     typedef typename Polytope::PolytopePoint Point;
     typedef typename Polytope::MT MT;
     bool print = var.verbose, fail;
+    //print = true;
     int n = P.dimension();
     NT ratio, ratio0;
     std::list<Point> randPoints;
@@ -178,9 +186,10 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     get_first_ball<RNGType>(P, B0, ratio, radius, lb, ub, alpha, rmax, var);
     //std::cout<<"first ball computed"<<std::endl;
     ratio0 = ratio;
+    //std::cout<<"is_in = "<<P.is_in(q)<<std::endl;
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
     var.TotSteps = var.TotSteps + NT(Ntot);
-    //std::cout<<"N points sampled from P"<<std::endl;
+    //std::cout<<"N ="<<Ntot<<std::endl;
 
     if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true, var)) {
         ratios.push_back(ratio);
@@ -198,6 +207,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
         var.diameter = ii*2.0*zb_it.radius();
         q=Point(n);
         randPoints.clear();
+        //std::cout<<"is_in = "<<zb_it.is_in(q)<<std::endl;
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
         var.TotSteps = var.TotSteps + NT(Ntot);
         //std::cout<<"N points sampled from BP"<<std::endl;

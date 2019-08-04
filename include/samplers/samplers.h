@@ -141,6 +141,8 @@ void rand_point_generator(Polytope &P,
     } else {
         billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
     }
+    //std::cout<<"is_in = "<<P.is_in(p)<<std::endl;
+    //std::cout<<"rnum = "<<rnum<<" walk_step = "<<walk_len<<std::endl;
 
     for (unsigned int i = 1; i <= rnum; ++i) {
         for (unsigned int j = 0; j < walk_len; ++j) {
@@ -161,6 +163,8 @@ void rand_point_generator(Polytope &P,
                 billiard_walk(P, p, var.diameter, lamdas, Av, lambda,  var);
             }
         }
+        //std::cout<<"is_in = "<<P.is_in(p)<<std::endl;
+        //std::cout<<"i = "<<i<<std::endl;
         randPoints.push_back(p);
     }
  
@@ -423,8 +427,9 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
             break;
         }
 
-        lambda_prev = 0.999 * pbpair.first;
+        lambda_prev = 0.995 * pbpair.first;
         p = (lambda_prev * v) + p;
+        //std::cout<<"[in bill] is_in = "<<P.is_in(p)<<std::endl;
         T -= lambda_prev;
         //std::cout<<"[2]before reflection"<<std::endl;
         P.compute_reflection(v, p, pbpair.second);
