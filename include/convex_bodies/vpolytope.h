@@ -31,7 +31,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    REAL *conv_comb;
+    REAL *conv_comb, *row;
+    int *colno;
 
 public:
     VPolytope() {}
@@ -178,6 +179,8 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
 
@@ -193,6 +196,8 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
 
@@ -351,10 +356,12 @@ public:
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
-        vppair.second = 1;
-        return vppair;
+        //std::pair<NT, int> vppair;
+        //vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
+        //vppair.second = 1;
+        //return vppair;
+
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
 
@@ -464,6 +471,12 @@ public:
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+    }
+
+    void free_them_all() {
+        free(row);
+        free(colno);
+        free(conv_comb);
     }
 
 };

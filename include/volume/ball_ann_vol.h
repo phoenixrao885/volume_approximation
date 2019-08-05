@@ -104,6 +104,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
                                                                              win_len, N * nu, var);
     }
 
+    P.free_them_all();
     return vol * round_value;
 
 }

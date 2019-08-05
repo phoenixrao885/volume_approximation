@@ -346,6 +346,11 @@ public:
 
     void compute_reflection (Point &v, Point &p, int &facet) {}
 
+    void free_them_all() {
+        P1.free_them_all();
+        P2.free_them_all();
+    }
+
 };
 
 

@@ -31,7 +31,8 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    REAL *conv_comb;
+    REAL *conv_comb, *row;
+    int *colno;
     MT sigma;
     MT Q0;
     MT T;
@@ -204,6 +205,8 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         bool normalization1=true;
         bool normalization2=false;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
@@ -222,6 +225,8 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         bool normalization1=true;
         bool normalization2=false;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
@@ -265,7 +270,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, false, true);
+            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, row, colno, false, true);
             if (min_plus < radius) radius = min_plus;
         }
 
@@ -298,10 +303,12 @@ public:
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
-        vppair.second = 1;
-        return vppair;
+        //std::pair<NT, int> vppair;
+        //vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
+        //vppair.second = 1;
+        //return vppair;
+
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
@@ -408,6 +415,12 @@ public:
         }
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+    }
+
+    void free_them_all() {
+        free(row);
+        free(colno);
+        free(conv_comb);
     }
 
 };

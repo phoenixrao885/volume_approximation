@@ -554,6 +554,8 @@ public:
 
     }
 
+    void free_them_all() {}
+
 };
 
 #endif

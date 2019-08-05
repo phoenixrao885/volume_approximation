@@ -64,6 +64,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     MT B = G * Tt;
     MT A3 = A2 * B.inverse();
 
+
     MT A = A3*G;
 
     //std::cout<<"M*G = "<<A3*G<<std::endl;
@@ -160,6 +161,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         }
     }
 
+    ZP.free_them_all();
     return vol;
 
 }
