@@ -62,6 +62,9 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
             case 4:
                 return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen));
 
+            case 5:
+                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen));
+
         }
     } else {
         switch (kind_gen) {
