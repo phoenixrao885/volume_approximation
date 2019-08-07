@@ -21,7 +21,7 @@ GenRandVpoly <- function(dimension, m, body = NULL) {
   }
   Vpoly_gen = TRUE
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m)
+  Mat = poly_gen(kind_gen, FALSE, Vpoly_gen, dimension, m)
 
   # first column is the vector b
   b = Mat[,1]

@@ -33,7 +33,7 @@
 //'
 //' @return A numerical matrix describing the requested polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_gen) {
+Rcpp::NumericMatrix poly_gen (int kind_gen, bool zono_gen, bool Vpoly_gen, int dim_gen, int m_gen) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -43,11 +43,25 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
 
-    if (kind_gen == 0) {
+    if (zono_gen) {
 
-        return extractMatPoly(gen_zonotope<zonotope, RNGType>(dim_gen, m_gen));
+        switch (kind_gen) {
+
+            case 1:
+                return extractMatPoly(gen_zonotope<zonotope, RNGType>(dim_gen, m_gen));
+
+            case 2:
+                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen));
+
+            case 3:
+                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen));
+
+            case 4:
+                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen));
+        }
 
     } else if (Vpoly_gen) {
+
         switch (kind_gen) {
 
             case 1:
@@ -67,6 +81,7 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
 
         }
     } else {
+
         switch (kind_gen) {
 
             case 1:
