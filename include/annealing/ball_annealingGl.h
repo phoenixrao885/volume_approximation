@@ -169,11 +169,11 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
 
 }
 
-template <class PolyBall, class RNGType,class ball, class Polytope, class Parameters, typename NT>
+template <class PolyBall, class RNGType,class ball, class Polytope, class Point, class Parameters, typename NT>
 void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT lb, NT ub, NT radius, NT alpha, Parameters &var, NT rmax = 0.0, NT ii=0.3) {
+                               NT lb, NT ub, NT radius, NT alpha, Point &q0, Parameters &var, NT rmax = 0.0, NT ii=0.3) {
 
-    typedef typename Polytope::PolytopePoint Point;
+    //typedef typename Polytope::PolytopePoint Point;
     typedef typename Polytope::MT MT;
     bool print = var.verbose, fail;
     //print = true;
@@ -187,6 +187,14 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     //std::cout<<"first ball computed"<<std::endl;
     ratio0 = ratio;
     //std::cout<<"is_in = "<<P.is_in(q)<<std::endl;
+    //std::cout<<"in annealing, q = "<<std::endl;
+    //Point q0(n);
+    while(true) {
+        q0 = get_point_in_Dsphere<RNGType, Point>(n, B0.radius());
+        if (P.is_in(q0)==-1) break;
+    }
+    q=q0;
+    //q.print();
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
     var.TotSteps = var.TotSteps + NT(Ntot);
     //std::cout<<"N ="<<Ntot<<std::endl;
@@ -205,7 +213,9 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     while (true) {
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
         var.diameter = ii*2.0*zb_it.radius();
-        q=Point(n);
+        q=q0;
+        //std::cout<<"in annealing, q = "<<std::endl;
+        //q.print();
         randPoints.clear();
         //std::cout<<"is_in = "<<zb_it.is_in(q)<<std::endl;
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);

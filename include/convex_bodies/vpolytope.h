@@ -195,7 +195,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
@@ -454,23 +454,34 @@ public:
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
+            //std::cout<<"conv_comb["<<j<<"] = "<<*(conv_comb+ j)<<std::endl;
             if (*(conv_comb + j) > 0.0) {
+                //std::cout<<"[POSITIVE]conv_comb["<<j<<"] = "<<*(conv_comb+ j)<<std::endl;
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {
                 outvert = j;
             }
         }
+        //if(count >_d || count<_d){
+            //std::cout<<"count = "<<count<<std::endl;
+            //throw "count is not d!";
+        //}
 
-        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
-        if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        VT a = Fmat2.fullPivLu().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a = -1.0*a;
         a = a/a.norm();
+        //std::cout<<"a = "<<a<<std::endl;
 
         Point s(_d);
         for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
 
+        //std::cout<<"v bef reflection = "<<std::endl;
+        //v.print();
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+        //std::cout<<"v after reflection = "<<std::endl;
+        //v.print();
     }
 
     void free_them_all() {

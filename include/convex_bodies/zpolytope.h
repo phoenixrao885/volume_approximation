@@ -393,20 +393,23 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        int count = 0, outvert;
+        int count = 0;
         MT Fmat(_d-1,_d);
         NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
             if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) && ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
                 Fmat.row(count) = V.row(j);
                 count++;
-            } else {
-                outvert = j;
             }
         }
 
         VT a = Fmat.fullPivLu().kernel();
-        if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        NT sum = 0.0;
+        for (int k = 0; k < _d; ++k) sum += a(k)*p[k];
+
+        if(sum<0.0) a = -1.0*a;
+        //if (a.dot(V.row(outvert)) > 1.0) a = -a;
+
         a = a/a.norm();
 
         Point s(_d);

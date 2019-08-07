@@ -85,14 +85,14 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
 
 
 template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
-NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot, NT prob,
+NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot, NT prob, Point q0,
                        Parameters &var, bool isball = false, NT radius = 0.0) {
 
     int n = var.n, index = 0;
     bool print = var.verbose;
     std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
     NT val, countIn = ratio*NT(Ntot), totCount = NT(Ntot), sum_sq=0.0, sum=0.0, lambda;
-    Point p(n);
+    Point p=q0;
     Point p_prev=p;
     unsigned int coord_prev;
     if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, var.walk_steps,

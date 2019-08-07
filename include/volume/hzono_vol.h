@@ -120,7 +120,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         var2.rdhr_walk = false;
         var2.bill_walk = false;
         var2.walk_steps = 10+2*n;
-        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var2);
+        vol *= esti_ratio_interval<RNGType>(HP2, ZP, ratio, er0, win_len, N*nu, prob, Point(n), var2);
     } else {
         vol *= esti_ratio<RNGType, Point>(HP2, ZP, ratio, er0, var_g.W, N*nu, var);
     }
@@ -130,7 +130,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         if (verbose) std::cout << "no hpoly | ratio = " << ratios[0] << std::endl;
         if (ratios[0]!=1) {
             if(!window2) {
-                vol = vol / esti_ratio_interval<RNGType, Point>(ZP, HP2, ratios[0], er1, win_len, N*nu, prob, var);
+                vol = vol / esti_ratio_interval<RNGType>(ZP, HP2, ratios[0], er1, win_len, N*nu, prob, Point(n), var);
             } else {
                 vol = vol / esti_ratio<RNGType, Point>(ZP, HP2, ratios[0], er1, var_g.W, N*nu, var);
             }
@@ -140,7 +140,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         if(verbose) std::cout<<"number of hpolys = "<<HPolySet.size()<<std::endl;
         b1 = HPolySet[0];
         if(!window2) {
-            vol = vol / esti_ratio_interval<RNGType, Point>(ZP, b1, ratios[0], er1, win_len, N*nu, prob, var);
+            vol = vol / esti_ratio_interval<RNGType>(ZP, b1, ratios[0], er1, win_len, N*nu, prob, Point(n), var);
         } else {
             vol = vol / esti_ratio<RNGType, Point>(ZP, b1, ratios[0], er1, var_g.W, N*nu, var);
         }
@@ -151,7 +151,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
             if(!window2) {
                 var.diameter = Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), Rcpp::wrap(A), Rcpp::wrap(zb1.get_vec())));
                 std::cout<<"new diameter = "<<var.diameter<<std::endl;
-                vol = vol / esti_ratio_interval<RNGType, Point>(zb1, b2, ratios[i], er1, win_len, N*nu, prob, var);
+                vol = vol / esti_ratio_interval<RNGType>(zb1, b2, ratios[i], er1, win_len, N*nu, prob, Point(n), var);
             } else {
                 vol = vol / esti_ratio<RNGType, Point>(zb1, b2, ratios[i], er1, var_g.W, N*nu, var);
             }
@@ -161,7 +161,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         if (!window2) {
             var.diameter = Rcpp::as<NT>(diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), Rcpp::wrap(A), Rcpp::wrap(zb1.get_vec())));
             std::cout<<"new diameter = "<<var.diameter<<std::endl;
-            vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
+            vol = vol / esti_ratio_interval<RNGType>(zb1, HP2, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, Point(n), var);
         } else {
             vol = vol / esti_ratio<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, var_g.W, N*nu, var);
         }
