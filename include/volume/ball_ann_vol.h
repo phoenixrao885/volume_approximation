@@ -22,7 +22,7 @@
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
 NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs,
-                    NT ii=0.4) {
+                    NT ii=0.9, bool only_phases = false) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;
@@ -77,6 +77,8 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
 
     int mm = BallSet.size() + 1;
     nballs = NT(mm - 1);
+    if (only_phases) return -1.0;
+
     prob = std::pow(prob, 1.0 / NT(mm));
     NT er0 = e / (2.0 * std::sqrt(NT(mm))), er1 = (e * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 

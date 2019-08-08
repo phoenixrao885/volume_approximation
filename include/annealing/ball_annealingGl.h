@@ -101,7 +101,7 @@ template <class RNGType,class ball, class Polytope, typename NT, class Parameter
 void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, NT alpha, NT rmax, Parameters &var){
 
     typedef typename Polytope::PolytopePoint Point;
-    int n = P.dimension();
+    int n = P.dimension(),it;
     bool bisection_int = false, pass = false, too_few = false;
     bool print = true;
     std::list<Point> randPoints;
@@ -122,7 +122,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         rmax = 2 * std::sqrt(NT(n)) * radius;
     }
     NT rad1 = radius;
-    //std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
+    std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
 
     while(!bisection_int) {
         //std::cout<<"ole!"<<" rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
@@ -142,20 +142,22 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         rmax = rmax + 2*std::sqrt(NT(n))*radius;
     }
 
-    NT rad_med;
+    NT rad_med, rad0=rad1, rad_m = rmax;
 
     while(true) {
+        //it=0;
+        //while (it<30) {
 
-        rad_med = 0.5*(rad1+rmax);
-        //std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<" rad_med = "<<rad_med<<std::endl;
+        rad_med = 0.5 * (rad1 + rmax);
+        std::cout << "rmax = " << rmax << " rad1 = " << rad1 << " rad_med = " << rad_med << " it = " << it << std::endl;
         randPoints.clear();
         too_few = false;
 
         for (int i = 0; i < 1200; ++i) randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rad_med));
 
-        if(check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false, var)) {
-            B0 = ball(Point(n), rad_med*rad_med);
-            //std::cout<<"done, ratio = "<<ratio<<std::endl;
+        if (check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false, var)) {
+            B0 = ball(Point(n), rad_med * rad_med);
+            std::cout << "done, ratio = " << ratio << std::endl;
             return;
         }
 
@@ -164,7 +166,14 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         } else {
             rad1 = rad_med;
         }
-
+        //it++;
+        //}
+        if(rmax-rad1<0.0000001) {
+            std::cout << "fail to find first ball in 30 iterations...repeat proccess" << std::endl;
+            std::cout<<"origin is in = "<<P.is_in(Point(n))<<std::endl;
+            rad1 = rad0;
+            rmax = rad_m;
+        }
     }
 
 }

@@ -85,6 +85,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     var3.rdhr_walk = false;
     var3.bill_walk = false;
     get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
+    std::cout<<"got smallest hpoly"<<std::endl;
     Hpolytope HP2=HP;
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();

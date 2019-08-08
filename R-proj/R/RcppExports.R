@@ -276,8 +276,8 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' Z = GenZonotope(2, 4)
 #' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 #' @export
-volume <- function(P, diam_zono, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL, diameter = NULL, iii = NULL) {
-    .Call(`_volesti_volume`, P, diam_zono, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters, diameter, iii)
+volume <- function(P, diam_zono, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, only_phases = NULL, Parameters = NULL, diameter = NULL, iii = NULL) {
+    .Call(`_volesti_volume`, P, diam_zono, walk_step, error, InnerBall, Algo, WalkType, rounding, only_phases, Parameters, diameter, iii)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope

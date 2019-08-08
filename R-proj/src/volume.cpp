@@ -21,7 +21,8 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                       bool CG, bool BAN, bool hpoly, unsigned int win_len, unsigned int N, double C, double ratio,
                       double frac, double lb, double ub, double p, double alpha, double rmax, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard,
-                      bool rounding, int type, Rcpp::Nullable<double> diameter, double ii, Rcpp::Function diam_zono)
+                      bool rounding, int type, Rcpp::Nullable<double> diameter, double ii, Rcpp::Function diam_zono,
+                      bool only_bodies)
 {
 
     typedef typename Polytope::VT VT;
@@ -66,16 +67,20 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
                 std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
                 round_val = res_round.first;
                 rounding = false;
-                InnerB = compute_minball<Point, VT, NT>(P);
+                //InnerB = compute_minball<Point, VT, NT>(P);
+
                 InnerB.second = 0.0;
-                //InnerBall.first = Point(n);
+                InnerB.first = Point(n);
+                get_vpoly_center(P);
                 //InnerBall.second = 0.0;
                 rmax = P.get_max_vert_norm();
                 //std::cout<<"is_in = "<<P.is_in(Point(n))<<std::endl;
                 //P.get_mean_of_vertices().print();
             } else {
-                InnerB = compute_minball<Point, VT, NT>(P);
+                //InnerB = compute_minball<Point, VT, NT>(P);
                 InnerB.second = 0.0;
+                InnerB.first = Point(n);
+                get_vpoly_center(P);
                 rmax = P.get_max_vert_norm();
 
                 //InnerBall.second = 0.0;
@@ -110,7 +115,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
         if (!hpoly) {
             //vars_ban <NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2 * n * n + 250, 220 + (n * n) / 10, 10, false);
             //std::cout<<"ii = "<<ii<<std::endl;
-            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, ii);
+            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, ii, only_bodies);
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
@@ -187,6 +192,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
                 Rcpp::Nullable<std::string> WalkType = R_NilValue,
                 Rcpp::Nullable<bool> rounding = R_NilValue,
+                Rcpp::Nullable<bool> only_phases = R_NilValue,
                 Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
                 Rcpp::Nullable<double> diameter = R_NilValue,
                 Rcpp::Nullable<double> iii = R_NilValue) {
@@ -203,11 +209,12 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     unsigned int n = P.field("dimension"), walkL;
 
-    bool CG, BAN, cdhr = true, rdhr = false, ball_walk = false, billiard = false, round, win2 = false, hpoly = false;
+    bool CG, BAN, cdhr = true, rdhr = false, ball_walk = false, billiard = false, round, win2 = false, hpoly = false,
+            only_bodies = false;
     unsigned int win_len = 4 * n * n + 500, N = 500 * 2 + n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
     double C = 2.0, ratio = 1.0 - 1.0 / (NT(n)), frac = 0.1, e, delta = -1.0,
-            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, ii=0.4;
+            lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, ii=0.9;
 
     if (!rounding.isNotNull()) {
         round = false;
@@ -291,6 +298,10 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
         ii = Rcpp::as<NT>(iii);
     }
 
+    if (only_phases.isNotNull()) {
+        only_bodies = Rcpp::as<bool>(only_phases);
+    }
+
     if(Parameters.isNotNull()) {
 
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
@@ -350,7 +361,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
 
             return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii, diam_zono);
+                                             round, type, diameter, ii, diam_zono,only_bodies);
         }
         case 2: {
             // Vpolytope
@@ -359,7 +370,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
 
             return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii, diam_zono);
+                                             round, type, diameter, ii, diam_zono,only_bodies);
         }
         case 3: {
             // Zonotope
@@ -368,7 +379,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
 
             return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii, diam_zono);
+                                             round, type, diameter, ii, diam_zono,only_bodies);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -398,7 +409,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Function diam_zono, Rcpp::N
 
             return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, BAN, hpoly, win_len, N, C, ratio, frac, lb,
                                              ub, p, alpha, rmax, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard,
-                                             round, type, diameter, ii, diam_zono);
+                                             round, type, diameter, ii, diam_zono,only_bodies);
         }
     }
 

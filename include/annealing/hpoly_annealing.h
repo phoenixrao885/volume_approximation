@@ -37,6 +37,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         count++;
         q=Point(n);
         med = (u + l) * 0.5;
+        std::cout<<"u = "<<u<<" l = "<<l<<" med = "<<med<<std::endl;
         Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
         variter.che_rad = HPiter.ComputeInnerBall().second;
@@ -60,6 +61,12 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         if(med>0.9) {
             HP.set_vec(Zmed);
             return;
+        }
+        if(u-l<0.00000001) {
+            std::cout << "fail to find first hpoly... repeat proccess" << std::endl;
+            //std::cout<<"origin is in = "<<P.is_in(Point(n))<<std::endl;
+            u=1.0;
+            l=0.0;
         }
     }
 }
@@ -113,9 +120,9 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
     NT ratio;
     std::list<Point> randPoints;
     Point q(n);
-    //std::cout<<"sampling N points"<<std::endl;
+    std::cout<<"sampling N points"<<std::endl;
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
-    //std::cout<<"sampling completed"<<std::endl;
+    std::cout<<"sampling completed"<<std::endl;
     var.TotSteps = var.TotSteps + NT(Ntot);
     HPolytope HP2 = HP;
     if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true,var)) {
