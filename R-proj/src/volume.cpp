@@ -119,7 +119,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_step, double e
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
-            vol = vol_hzono<HPolytope<Point> > (P, var, var_ban, varg, InnerB,nballs,diam_zono);
+            vol = vol_hzono<HPolytope<Point> > (P, var, var_ban, varg, InnerB,nballs,diam_zono, only_bodies);
         }
     }else {
         vol = volume(P, var, InnerB);
