@@ -200,10 +200,11 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     //Point q0(n);
     while(true) {
         q0 = get_point_in_Dsphere<RNGType, Point>(n, B0.radius());
+
         if (P.is_in(q0)==-1) break;
     }
     q=q0;
-    //q.print();
+
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
     var.TotSteps = var.TotSteps + NT(Ntot);
     //std::cout<<"N ="<<Ntot<<std::endl;

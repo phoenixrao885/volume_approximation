@@ -27,7 +27,8 @@
 //'
 //' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
 // [[Rcpp::export]]
-Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Nullable<bool> fit_ratio = R_NilValue,
+Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, double diameter,
+                        Rcpp::Nullable<bool> fit_ratio = R_NilValue,
                         Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                         Rcpp::Nullable<double> error = R_NilValue,
                         Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
@@ -47,7 +48,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Null
     int n = Rcpp::as<int>(Z.field("dimension")), k = Rcpp::as<MT>(Z.field("G")).rows();
     double e = 0.1, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
     int win_len = 2 * n * n + 250, NN = 220 + (n * n) / 10, nu =10, walkL = 1;
-    bool ball_walk = false, verbose = false, cdhr = false, rdhr = true, round = false, win2 = false, hpoly = false;
+    bool ball_walk = false, verbose = true, billw=false, cdhr = false, rdhr = false, round = false, win2 = false, hpoly = false;
 
 
     NT ratio = 0.0;
@@ -110,17 +111,13 @@ Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Null
         if (walk_step.isNotNull()) walkL = Rcpp::as<int>(walk_step);
         if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
         if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
-            cdhr = false;
             rdhr = true;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
             cdhr = true;
-            rdhr = false;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW")) == 0) {
-            cdhr = false;
-            rdhr = false;
             ball_walk = true;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW")) == 0) {
+            billw = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
         }
@@ -152,8 +149,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Null
             InnerB = ZP.ComputeInnerBall();
         }
 
-        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, 2.0*InnerB.second, rng,
-                               urdist, urdist1, delta, false, false, rounding, false, false, ball_walk, cdhr,rdhr, false,
+        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, diameter, rng,
+                               urdist, urdist1, delta, verbose, false, round, false, false, ball_walk, cdhr,rdhr, billw,
                               0.0,0.0,0.0);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
@@ -167,6 +164,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Null
         //std::cout<<"points in HP = "<<count<<std::endl;
 
         NT vol;
+        double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
         if (!hpoly) {
             NT memlps=0.0;
             vol = volesti_ball_ann(ZP, var, var_ban, InnerB,memlps);
@@ -177,7 +175,12 @@ Rcpp::List zono_approx (Rcpp::Reference Z,  Rcpp::Function diam_zono, Rcpp::Null
             NT nballs2;
             vol = vol_hzono<Hpolytope> (ZP, var, var_ban, varg, InnerB, nballs2, diam_zono);
         }
+        double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
+        std::cout << "volume estimation time: " << tstop11 - tstart11 << std::endl;
         ratio = std::pow(vol_red / vol, 1.0/NT(n));
+
+        std::cout<<"volume of Z = "<<vol<<std::endl;
+        std::cout<<"volume of over approx = "<<vol_red<<std::endl;
     }
 
     return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat) , Rcpp::Named("fit_ratio") = ratio);

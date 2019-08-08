@@ -295,7 +295,7 @@ volume <- function(P, diam_zono, walk_step = NULL, error = NULL, InnerBall = NUL
 #' Do not use this function.
 #'
 #' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
-zono_approx <- function(Z, diam_zono, fit_ratio = NULL, walk_step = NULL, error = NULL, InnerBall = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
-    .Call(`_volesti_zono_approx`, Z, diam_zono, fit_ratio, walk_step, error, InnerBall, WalkType, rounding, Parameters)
+zono_approx <- function(Z, diam_zono, diameter, fit_ratio = NULL, walk_step = NULL, error = NULL, InnerBall = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
+    .Call(`_volesti_zono_approx`, Z, diam_zono, diameter, fit_ratio, walk_step, error, InnerBall, WalkType, rounding, Parameters)
 }
 
