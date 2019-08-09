@@ -144,7 +144,7 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         randPoints.clear();
 
         var.diameter = 0.0;
-        for (int j = 0; j < 5; ++j) {
+        for (int j = 0; j < 1; ++j) {
             std::cout<<"computing new diam"<<std::endl;
             diam_iter = Rcpp::as<NT>(
                     diam_zono(Rcpp::wrap(Z.get_mat().transpose()), Rcpp::wrap(HP2.get_mat()*Z.get_mat().transpose()),

@@ -154,7 +154,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
             b2 = HPolySet[i+1];
             if(!window2) {
                 var.diameter = 0.0;
-                for (int j = 0; j < 5; ++j) {
+                for (int j = 0; j < 1; ++j) {
                     diam_iter = Rcpp::as<NT>(
                             diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), Rcpp::wrap(A), Rcpp::wrap(zb1.get_vec())));
                     std::cout<<"diam_iter = "<<diam_iter<<std::endl;
@@ -170,7 +170,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
         if (!window2) {
             var.diameter = 0.0;
-            for (int j = 0; j < 5; ++j) {
+            for (int j = 0; j < 1; ++j) {
                 diam_iter = Rcpp::as<NT>(
                         diam_zono(Rcpp::wrap(ZP.get_mat().transpose()), Rcpp::wrap(A), Rcpp::wrap(zb1.get_vec())));
                 std::cout<<"diam_iter = "<<diam_iter<<std::endl;
