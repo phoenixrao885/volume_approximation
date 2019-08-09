@@ -111,13 +111,13 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
 template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
 void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
                                VT Zs_max, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT &p_value, NT up_lim, NT alpha, Parameters &var) {
+                               NT &p_value, NT up_lim, NT alpha, Parameters &var, Rcpp::Function diam_zono) {
 
     bool print = var.verbose, too_few=false;
     typedef typename Zonotope::PolytopePoint Point;
     typedef typename Zonotope::MT MT;
     int n = var.n;
-    NT ratio;
+    NT ratio, diam_iter;
     std::list<Point> randPoints;
     Point q(n);
     std::cout<<"sampling N points"<<std::endl;
@@ -142,6 +142,18 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         ZHP2 = ZonoHP(Z,HP2);
         q=Point(n);
         randPoints.clear();
+
+        var.diameter = 0.0;
+        for (int j = 0; j < 5; ++j) {
+            std::cout<<"computing new diam"<<std::endl;
+            diam_iter = Rcpp::as<NT>(
+                    diam_zono(Rcpp::wrap(Z.get_mat().transpose()), Rcpp::wrap(HP2.get_mat()*Z.get_mat().transpose()),
+                              Rcpp::wrap(HP2.get_vec())));
+            // std::cout<<"[annealing] diam_iter = "<<diam_iter<<std::endl;
+            if (diam_iter > var.diameter) var.diameter = diam_iter;
+        }
+        std::cout<<"[annealing] new diameter = "<<var.diameter<<std::endl;
+
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
         var.TotSteps = var.TotSteps + NT(Ntot);
         if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true,var)) {

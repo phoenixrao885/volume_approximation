@@ -36,7 +36,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
     unsigned int coord_prev;
 
     if(!var.ball_walk && !isball){
-        uniform_first_point(Pb1,p,p_prev,coord_prev,var.walk_steps,lamdas,Av,lambda,var);
+        uniform_first_point(Pb1,p,p_prev,coord_prev,1,lamdas,Av,lambda,var);
     }
 
     while(true){
@@ -95,7 +95,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
     Point p=q0;
     Point p_prev=p;
     unsigned int coord_prev;
-    if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
+    if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, 1,
                                                                              lamdas, Av, lambda, var);
 
     for (int i = 0; i < W; ++i) {
@@ -104,7 +104,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
             var.MemLps = var.MemLps + 1.0;
         } else {
-            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
+            uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 
