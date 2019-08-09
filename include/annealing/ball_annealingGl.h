@@ -168,7 +168,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         }
         //it++;
         //}
-        if(rmax-rad1<0.0000001) {
+        if(rmax-rad1<0.000000001) {
             std::cout << "fail to find first ball in 30 iterations...repeat proccess" << std::endl;
             std::cout<<"origin is in = "<<P.is_in(Point(n))<<std::endl;
             rad1 = rad0;

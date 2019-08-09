@@ -62,7 +62,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
             HP.set_vec(Zmed);
             return;
         }
-        if(u-l<0.00000001) {
+        if(u-l<0.0000000001) {
             std::cout << "fail to find first hpoly... repeat proccess" << std::endl;
             //std::cout<<"origin is in = "<<P.is_in(Point(n))<<std::endl;
             u=1.0;
