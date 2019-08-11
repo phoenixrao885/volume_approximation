@@ -141,6 +141,7 @@ Rcpp::List rounding (Rcpp::Reference P,
         }
         case 3: {
             round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
+            //round_res.first = round_zono<NT>(ZP);
             Mat = extractMatPoly(ZP);
             break;
         }

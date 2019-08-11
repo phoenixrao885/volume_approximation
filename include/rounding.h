@@ -141,6 +141,36 @@ void get_vpoly_center(Polytope &P) {
 }
 
 
+template <typename NT, class Polytope>
+NT round_zono(Polytope &P) {
+
+    //typedef typename Polytope::NT 	NT;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Polytope::PolytopePoint 	Point;
+
+    unsigned int n = P.dimension(), i, j = 0;
+
+    MT G = P.get_mat().transpose();
+    MT E = G*G.transpose();
+    E = ( E + E.transpose() ) / 2.0;
+
+
+    Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+    MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+
+    //Shift polytope in order to contain the origin (center of the ellipsoid)
+    //P.shift(e);
+
+    MT L_1 = L.inverse();
+    P.linear_transformIt(L_1.transpose());
+
+    return L_1.determinant();
+
+}
+
+
+
 // -------- ROTATION ---------- //
 /*template <class MT, class Polytope>
 MT rotating(Polytope &P){
