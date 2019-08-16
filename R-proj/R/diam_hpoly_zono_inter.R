@@ -12,8 +12,14 @@ diam_hpoly_zono_inter <- function(G,A,b){
   
   DD = t(G)%*%G
   DD = (DD+t(DD))/2
+  print("hello from comp_hpoly_diam!")
   
-  x0 = runif(k)
+  M = rbind(A,diag(k))
+  M = rbind(M,-diag(k))
+  bb = c(c(b),c(rep(1,2*k)))
+  K = volesti::Hpolytope$new(A=M,b=bb)
+  x0 = as.vector(sample_points(K, walk_step = 10+4*d,N=1))
+  print(x0)
   
   relvar <- function(x){
     return(-t(x)%*%DD%*%x)
