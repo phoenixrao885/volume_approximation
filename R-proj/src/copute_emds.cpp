@@ -73,49 +73,54 @@ Rcpp::NumericVector emd_Bmat (Rcpp::NumericMatrix B, Rcpp::NumericMatrix A, int 
         add_constraintex(lp, m*m, row, colno, EQ, 1.0); //beq(i)
     //}
 
-    lpcopy = copy_lp(lp);
+
     //delete_lp(lp);
     //lprec *lpcopy;// = copy_lp(lp);
     //lpcopy = copy_lp(lp);
-    for (int i = 0; i < 2*m; ++i) {
+    /*for (int i = 0; i < 2*m; ++i) {
         for(int j=0; j<m*m; j++) {
             colno[j] = j + 1;
             row[j] = AA(i,j); //Aeq(i,j);
         }
         //std::cout<<BB(i,0)<<" ";
         add_constraintex(lp, m*m, row, colno, LE, BB(i,0));
-    }
-
-    for (int i = 0; i < 2*m; ++i) {
-        for(int j=0; j<m*m; j++) {
-            colno[j] = j + 1;
-            row[j] = AA(i,j); //Aeq(i,j);
-        }
-        //std::cout<<BB(i,0)<<" ";
-        add_constraintex(lpcopy, m*m, row, colno, LE, BB(i, 1));
-    }
-    //std::cout<<"\n";
-    set_add_rowmode(lp, FALSE);
-    set_add_rowmode(lpcopy, FALSE);
-
-
-    //set_add_rowmode(lp, FALSE);
-
-    set_minim(lp);
-    set_verbose(lp, NEUTRAL);
-
-    if (solve(lp) != OPTIMAL) std::cout<<"OPA"<<std::endl;
+    }*/
 
     Rcpp::NumericVector res(2);
-    res(0) = double(get_objective(lp));
-    std::cout<<"obj val = "<<double(get_objective(lp))<<std::endl;
+    for (int k = 0; k < 2; ++k) {
+        lpcopy = copy_lp(lp);
 
-    set_minim(lpcopy);
-    set_verbose(lpcopy, NEUTRAL);
+        for (int i = 0; i < 2 * m; ++i) {
+            for (int j = 0; j < m * m; j++) {
+                colno[j] = j + 1;
+                row[j] = AA(i, j); //Aeq(i,j);
+            }
+            //std::cout<<BB(i,0)<<" ";
+            add_constraintex(lpcopy, m * m, row, colno, LE, BB(i, k));
+        }
+        //std::cout<<"\n";
+        //set_add_rowmode(lp, FALSE);
+        set_add_rowmode(lpcopy, FALSE);
 
-    if (solve(lpcopy) != OPTIMAL) std::cout<<"OPA"<<std::endl;
-    res(1) = double(get_objective(lpcopy));
-    std::cout<<"obj val = "<<double(get_objective(lpcopy))<<std::endl;
+
+        //set_add_rowmode(lp, FALSE);
+
+        //set_minim(lpcopy);
+        //set_verbose(lpcopy, NEUTRAL);
+
+        //if (solve(lp) != OPTIMAL) std::cout << "OPA" << std::endl;
+
+        //
+        //res(0) = double(get_objective(lp));
+        //std::cout << "obj val = " << double(get_objective(lp)) << std::endl;
+
+        set_minim(lpcopy);
+        set_verbose(lpcopy, NEUTRAL);
+
+        if (solve(lpcopy) != OPTIMAL) std::cout << "OPA" << std::endl;
+        res(k) = double(get_objective(lpcopy));
+        std::cout << "obj val = " << double(get_objective(lpcopy)) << std::endl;
+    }
 
     return res;
 
