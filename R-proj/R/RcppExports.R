@@ -55,7 +55,7 @@ get_copulas <- function(RetMat, EllMats, Win = NULL, M = NULL, N = NULL, error =
     .Call(`_volesti_get_copulas`, RetMat, EllMats, Win, M, N, error, prob, hnr)
 }
 
-emd_Bmat <- function(B, A, m, fin) {
-    .Call(`_volesti_emd_Bmat`, B, A, m, fin)
+emd_Bmat <- function(B, A, m, fin, i = 0L) {
+    .Call(`_volesti_emd_Bmat`, B, A, m, fin, i)
 }
 

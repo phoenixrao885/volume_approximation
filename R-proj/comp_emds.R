@@ -1,3 +1,12 @@
+library(volesti)
+library(R.matlab)
+
+source('~/volume_approximation/R-proj/get_sgn.R', echo=TRUE)
+source('~/volume_approximation/R-proj/gdm.R', echo=TRUE)
+
+sgns = readMat('Signatures.mat')
+sgns = sgns$Signatures
+
 s1 = get_sgn(sgns,1)
 s2 = get_sgn(sgns,2)
 F1 = s1$F
@@ -29,25 +38,26 @@ beq = matrix(1, m + n, 1) * min(sum(W1), sum(W2))
 
 l = c(matrix(0, m * n))
 
-
-s3 = get_sgn(sgns,3)
-F3 = s3$F
-W3 = s3$W
-b2 = rbind(W1, W3)
-
-D = matrix(rep(0,6616*6616), ncol = 6616, nrow = 6616)
-
+D = matrix(rep(0,6968*6968), ncol = 6968, nrow = 6968)
+tt = 0
 for (i in 1:1) {
-  for (j in (i+1):66) {
-    s1 = get_sgn(sgns,i)
+  s1 = get_sgn(sgns,i)
+  s2 = get_sgn(sgns,i+1)
+  B = rbind(s1$W, s2$W)
+  for (j in (i+2):69) {
+    
     s2 = get_sgn(sgns,j)
   
-    print(paste0("i = ",i," j = ",j))
-  
-    b=rbind(s1$W, s2$W)
-    D[i,j] = solve_lp22(A,b,Aeq,beq,l,f)
+    B=cbind(B, rbind(s1$W, s2$W))
+    #D[i,j] = solve_lp22(A,b,Aeq,beq,l,f)
   }
-  writeMat(paste0(getwd(),"/D_",i,"_",j,".mat"),D=D)
+  tim=system.time({ dis = emd_Bmat(B, A, m, f, i) })
+  tt = tt + as.numeric(tim)[3]
+  D[i,(i+1):6968] = dis
+  if (tt>300) {
+    writeMat(paste0(getwd(),"/D_",1,"_",700,".mat"),D=D)
+    tt = 0
+  }
 }
 
 
