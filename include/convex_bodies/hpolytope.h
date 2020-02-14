@@ -32,12 +32,15 @@ public:
 
 private:
     MT A; //matrix A
+    MT AA;
     VT b; // vector b, s.t.: Ax<=b
     unsigned int            _d; //dimension
     //NT maxNT = 1.79769e+308;
     //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
+    NT inner_vi_ak;
+    int facet_k;
 
 public:
     HPolytope() {}
@@ -128,6 +131,9 @@ public:
         b(i) = value;
     }
 
+    bool need_ref() const {
+        return false;
+    }
 
     Point get_mean_of_vertices() const {
         return Point(_d);
@@ -149,6 +155,7 @@ public:
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
         _d = dim;
         A = _A;
+        AA = A * A.transpose();
         b = _b;
     }
 
@@ -163,6 +170,7 @@ public:
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
+        AA = A * A.transpose();
     }
 
 
@@ -339,7 +347,11 @@ public:
                 lamda = sum_nom / sum_denom;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
-                    if (pos) facet = i;
+                    if (pos){
+                        facet = i;
+                        facet_k = i;
+                        inner_vi_ak = sum_denom;
+                    }
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
         }
@@ -373,7 +385,11 @@ public:
                 lamda = sum_nom / sum_denom;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
-                    if (pos) facet = i;
+                    if (pos){
+                        facet = i;
+                        facet_k = i;
+                        inner_vi_ak = sum_denom;
+                    }
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
         }
@@ -381,20 +397,61 @@ public:
         return std::pair<NT, NT>(min_plus, max_minus);
     }
 
-
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
         return line_intersect(r, v, Ar, Av, true);
     }
 
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, const NT &lambda_prev) {
-        return line_intersect(r, v, Ar, Av, lambda_prev, true);
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev, bool new_v = false) {
+        if (new_v) {
+            return line_intersect(r, v, Ar, Av, lambda_prev, true);
+        }
+
+        NT lamda = 0, min_plus = NT(maxNT);
+        NT sum_nom, sum_denom, sum2;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet_prev = facet_k;
+        NT inner_prev = inner_vi_ak;
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        //std::cout<<"[3]facet_k = "<<facet_k<<", inner_vi_ak = "<<inner_prev<<std::endl;
+
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+
+            sum2 = (-2.0 * inner_prev) * AA(i, facet_prev);
+
+            *Ariter += lambda_prev * (*Aviter);
+
+            *Aviter += sum2;
+
+            sum_denom = NT(0);
+            vit = v.iter_begin();
+            j=0;
+
+            sum_nom = b(i) - (*Ariter);
+            if ( (*Aviter) == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / (*Aviter);
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet_k = i;
+                    inner_vi_ak = (*Aviter);
+                }
+            }
+
+        }
+
+        //std::cout<<"min_plus = "<<min_plus<<std::endl;
+        return std::pair<NT, NT>(min_plus, facet_k);
     }
 
 
@@ -511,10 +568,13 @@ public:
 
     void compute_reflection(Point &v, const Point &p, const int facet) {
 
-        VT a = A.row(facet);
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        VT a = (-2.0 * inner_vi_ak) * A.row(facet_k);
+        for (int i = 0; i < _d; ++i) v.set_coord(i, v[i] + a(i));
+
+        //VT a = A.row(facet);
+        //Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+        //s = ((-2.0 * v.dot(s)) * s);
+        //v = s + v;
 
     }
 

@@ -241,6 +241,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 // Hpolytope
                 HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                         Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+                HP.normalize();
 
                 if (!set_mean_point || ball_walk || billiard) {
                     InnerBall = HP.ComputeInnerBall();

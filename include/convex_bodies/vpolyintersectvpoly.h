@@ -92,6 +92,10 @@ public:
         return 0.0;
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     void comp_diam(NT &diam, const NT &cheb_rad) const {
         diam = 2.0 * std::sqrt(NT(dimension())) * cheb_rad;
     }
@@ -241,7 +245,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+                                               const std::vector<NT> &Av, const NT &lambda_prev, bool new_v = false) {
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 

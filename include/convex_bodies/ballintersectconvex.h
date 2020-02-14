@@ -41,6 +41,10 @@ public:
         return P.dimension();
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     void comp_diam(NT &diam, const NT &cheb_rad) const {
         diam = 2.0 * B.radius();
     }
@@ -82,7 +86,7 @@ public:
 
 
     std::pair<NT,int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av,
-                                              NT &lambda_prev) {
+                                              NT &lambda_prev, bool new_v = false) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);

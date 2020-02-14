@@ -114,6 +114,10 @@ public:
         return V;
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     void init(const unsigned int &dim, const MT &_V, const VT &_b) {
         _d = dim;
         V = _V;
@@ -376,7 +380,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+                                               const std::vector<NT> &Av, const NT &lambda_prev, bool new_v = false) {
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 

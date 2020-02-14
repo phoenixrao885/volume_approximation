@@ -36,6 +36,10 @@ public:
         return c.dimension();
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     int is_in(Point &p) {
         if (p.squared_length() <= R)
             return -1;
@@ -77,7 +81,7 @@ public:
     }
 
     std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-                                             const std::vector<NT> &Av, NT &lambda_prev){
+                                             const std::vector<NT> &Av, NT &lambda_prev, bool new_v = false){
         return line_positive_intersect(r, v);
     }
 

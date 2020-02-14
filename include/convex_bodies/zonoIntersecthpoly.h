@@ -55,6 +55,10 @@ public:
         return HP.get_vec();
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
         std::pair <NT, NT> polypair = HP.line_intersect(r, v);
@@ -103,7 +107,7 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(Point &r, Point &v,  std::vector<NT> &Ar,
-                                               std::vector<NT> &Av, NT &lambda_prev) {
+                                               std::vector<NT> &Av, NT &lambda_prev, bool new_v = false) {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
         int facet = HP.num_of_hyperplanes()+1;

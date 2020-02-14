@@ -174,6 +174,10 @@ public:
         return 0.0;
     }
 
+    bool need_ref() const {
+        return true;
+    }
+
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
     void init(const unsigned int dim, const MT &_V, const VT &_b) {
         _d = dim;
@@ -308,7 +312,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+                                               const std::vector<NT> &Av, const NT &lambda_prev, bool new_v = false) {
         return line_positive_intersect(r, v, Ar, Av);
     }
 

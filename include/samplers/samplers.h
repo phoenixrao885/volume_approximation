@@ -465,6 +465,20 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
         P.compute_reflection(v, p, pbpair.second);
+        it++;
+    } else {
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, true);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            return;
+        }
+
+        lambda_prev = dl * pbpair.first;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        P.compute_reflection(v, p, pbpair.second);
+        it++;
     }
 
     while (it<10*n) {
