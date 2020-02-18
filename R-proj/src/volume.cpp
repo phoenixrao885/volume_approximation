@@ -15,7 +15,7 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "volume.h"
 #include "cooling_balls.h"
-#include "cooling_hpoly.h"
+//#include "cooling_hpoly.h"
 
 
 template <class Point, class NT, class Polytope>
@@ -108,7 +108,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         } else {
             vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta,
                                       verbose, rand_only, false, false, birk, false, true, false);
-            vol = vol_cooling_hpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
+            //vol = vol_cooling_hpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
         }
         if (vol < 0.0) {
             throw Rcpp::exception("Simulated annealing failed! Try to increase the walk length.");
