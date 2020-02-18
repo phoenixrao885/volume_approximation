@@ -68,16 +68,16 @@ public:
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av) {
-        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av);
+            std::vector<NT> &Av, NT &fake) {
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, fake);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, NT &lambda_prev) {
-        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, lambda_prev);
+            std::vector<NT> &Av, NT &lambda_prev, NT &fake) {
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, lambda_prev, fake);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
@@ -95,7 +95,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-                                               std::vector<NT> &Av) {
+                                               std::vector<NT> &Av, const NT &inner_vi_ak) {
 
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
@@ -107,7 +107,7 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(Point &r, Point &v,  std::vector<NT> &Ar,
-                                               std::vector<NT> &Av, NT &lambda_prev, bool new_v = false) {
+            std::vector<NT> &Av, NT &lambda_prev, const NT &inner_vi_ak, bool new_v = false) {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
         int facet = HP.num_of_hyperplanes()+1;
@@ -137,12 +137,12 @@ public:
                                  std::max(polypair.second, zonopair.second));
     }
 
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
+    void compute_reflection (Point &v, const Point &p, const NT &inner_vi_ak, const int &facet) {
 
         if (facet == (HP.num_of_hyperplanes()+1)) {
-            Z.compute_reflection(v, p, facet);
+            Z.compute_reflection(v, p, inner_vi_ak, facet);
         } else {
-            HP.compute_reflection(v, p, facet);
+            HP.compute_reflection(v, p, inner_vi_ak, facet);
         }
 
     }

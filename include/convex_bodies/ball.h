@@ -46,6 +46,22 @@ public:
         else return 0;
     }
 
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, NT &vp, NT &psq) {
+
+        viterator vit=v.iter_begin(), cit=c.iter_begin(), rcit=r.iter_begin();
+        NT vrc(0), v2(0), rc2(0);
+        for( ; cit < c.iter_end() ; ++cit, ++rcit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+        vp = v2;
+        psq = std::sqrt(rc2);
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
+    }
+
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
         viterator vit=v.iter_begin(), cit=c.iter_begin(), rcit=r.iter_begin();
@@ -61,7 +77,12 @@ public:
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av){
+            const std::vector<NT> &Av, NT &vp, NT &psq){
+        return line_intersect(r, v);
+    }
+
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
+                                    const std::vector<NT> &Av, NT &vp, NT &psq, bool fake2){
         return line_intersect(r, v);
     }
 
@@ -82,6 +103,11 @@ public:
 
     std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
                                              const std::vector<NT> &Av, NT &lambda_prev, bool new_v = false){
+        return line_positive_intersect(r, v);
+    }
+
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
+                                              const std::vector<NT> &Av, NT &lambda_prev, NT &fake3, bool new_v = false){
         return line_positive_intersect(r, v);
     }
 
@@ -116,11 +142,22 @@ public:
         return 0;
     }
 
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
+    void compute_reflection (Point &v, const Point &p, const NT &inner_vi_ak, const int &facet) {
 
         Point s = p;
         s = s * (1.0 / std::sqrt(s.squared_length()));
         s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
+
+    }
+
+    void compute_reflection (Point &v, const Point &p, NT &inner_vi_ak, NT &psq, const int &facet) {
+
+        Point s = p;
+        psq = std::sqrt(s.squared_length());
+        s = s * (1.0 / psq);
+        inner_vi_ak = v.dot(s);
+        s = ((-2.0 * inner_vi_ak) * s);
         v = s + v;
 
     }

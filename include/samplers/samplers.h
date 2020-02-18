@@ -118,7 +118,7 @@ void boundary_rand_point_generator(Polytope &P,
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0)), Av(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, lambda;
+    NT kapa, lambda, fake;
     Point p_prev = p, p1(n), p2(n), v(n);
     std::pair <NT, NT> bpair;
 
@@ -130,7 +130,7 @@ void boundary_rand_point_generator(Polytope &P,
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else{
         v = get_direction<RNGType, Point, NT>(n);
-        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, fake);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     }
@@ -154,7 +154,7 @@ void boundary_rand_point_generator(Polytope &P,
             } else {
 
                 v = get_direction<RNGType, Point, NT>(n);
-                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda, fake);
                 p1 = (bpair.first * v) + p;
                 p2 = (bpair.second * v) + p;
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
@@ -186,7 +186,7 @@ void rand_point_generator(Polytope &P,
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0)), Av(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta, lambda;
+    NT kapa, ball_rad = var.delta, lambda, fake;
     Point p_prev = p, v(n);
 
     if (var.ball_walk) {
@@ -199,7 +199,7 @@ void rand_point_generator(Polytope &P,
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else if (var.rdhr_walk) {
         v = get_direction<RNGType, Point, NT>(n);
-        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, fake);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
         //hit_and_run(p, P, var);
@@ -218,7 +218,7 @@ void rand_point_generator(Polytope &P,
                 hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas);
             } else if (var.rdhr_walk) {
                 v = get_direction<RNGType, Point, NT>(n);
-                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda, fake);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
                 //hit_and_run(p, P, var);
@@ -251,7 +251,7 @@ void rand_point_generator(BallPoly &PBLarge,
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0)), Av(PBLarge.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta, lambda;
+    NT kapa, ball_rad = var.delta, lambda, fake;
     Point p_prev = p, v(n);
 
     if (var.ball_walk) {
@@ -265,7 +265,7 @@ void rand_point_generator(BallPoly &PBLarge,
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else if (var.rdhr_walk) {
         v = get_direction<RNGType, Point, NT>(n);
-        std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
+        std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, fake);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
         //hit_and_run(p, PBLarge, var);
@@ -311,7 +311,7 @@ void uniform_first_point(Polytope &P,
                          const Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
-    NT kapa, ball_rad = var.delta;
+    NT kapa, ball_rad = var.delta, fake;
     Point v(n);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     boost::random::uniform_real_distribution<> urdist(0, 1);
@@ -329,7 +329,7 @@ void uniform_first_point(Polytope &P,
         coord_prev = rand_coord;
     } else if (var.rdhr_walk) {
         v = get_direction<RNGType, Point, NT>(n);
-        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, fake);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
@@ -352,7 +352,7 @@ void uniform_first_point(Polytope &P,
     } else if (var.rdhr_walk) {
         for (unsigned int j = 0; j < walk_len; j++) {
             v = get_direction<RNGType, Point, NT>(n);
-            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda, fake);
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         }
@@ -448,14 +448,14 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
     unsigned int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    NT T = urdist(rng) * diameter;
+    NT T = urdist(rng) * diameter, inner_vi_ak;
     const NT dl = 0.995;
     Point v = get_direction<RNGType, Point, NT>(n), p0 = p;
     int it = 0;
 
     if (first) {
 
-        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, inner_vi_ak);
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -464,10 +464,10 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
         lambda_prev = dl * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
-        P.compute_reflection(v, p, pbpair.second);
+        P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
         it++;
     } else {
-        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, true);
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, inner_vi_ak, true);
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -477,13 +477,13 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
         lambda_prev = dl * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
-        P.compute_reflection(v, p, pbpair.second);
+        P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
         it++;
     }
 
     while (it<10*n) {
 
-        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, inner_vi_ak);
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -493,7 +493,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
         lambda_prev = dl * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
-        P.compute_reflection(v, p, pbpair.second);
+        P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
         it++;
     }
 

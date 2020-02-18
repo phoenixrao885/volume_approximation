@@ -118,6 +118,10 @@ public:
         return true;
     }
 
+    void hit_ball(const bool &hb) {}
+
+    void inner_normal_norm(const NT &in_b) {}
+
     void init(const unsigned int &dim, const MT &_V, const VT &_b) {
         _d = dim;
         V = _V;
@@ -357,7 +361,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+            const std::vector<NT> &Av, const NT &fake) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
@@ -365,7 +369,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda_prev) {
+                                    const std::vector<NT> &Av, const NT &lambda_prev, const NT &fake) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
@@ -376,14 +380,14 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av) {
+                                               const std::vector<NT> &Av, const NT &inner_vi_ak) {
         return line_positive_intersect(r, v);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev, bool new_v = false) {
-        return line_positive_intersect(r, v);//, Ar, Av);
+            const std::vector<NT> &Av, const NT &lambda_prev, const NT &inner_vi_ak, bool new_v = false) {
+        return line_positive_intersect(r, v);
     }
 
 
@@ -455,7 +459,7 @@ public:
         return true;
     }
 
-    void compute_reflection(Point &v, const Point &p, const int &facet) {
+    void compute_reflection(Point &v, const Point &p, const NT &inner_vi_ak, const int &facet) {
 
         int count = 0, outvert;
         MT Fmat2(_d,_d);

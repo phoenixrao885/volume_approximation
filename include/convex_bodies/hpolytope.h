@@ -39,7 +39,8 @@ private:
     //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    NT inner_vi_ak;
+    NT inner_ball_norm;
+    bool ball_hit=false;
     int facet_k;
 
 public:
@@ -142,6 +143,14 @@ public:
 
     NT get_max_vert_norm() const {
         return 0.0;
+    }
+
+    void hit_ball(bool hb) {
+        ball_hit = hb;
+    }
+
+    void inner_normal_norm(NT in_b) {
+        inner_ball_norm = in_b;
     }
 
     void comp_diam(NT &diam, const NT &cheb_rad) {
@@ -318,7 +327,7 @@ public:
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, bool pos = false) {
+            std::vector<NT> &Av, NT &inner_vi_ak, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, mult;
@@ -360,7 +369,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, const NT &lambda_prev, bool pos = false) {
+            std::vector<NT> &Av, const NT &lambda_prev, NT &inner_vi_ak, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, mult;
@@ -399,17 +408,17 @@ public:
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return line_intersect(r, v, Ar, Av, true);
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &inner_vi_ak) {
+        return line_intersect(r, v, Ar, Av, inner_vi_ak, true);
     }
 
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
-                                               NT &lambda_prev, bool new_v = false) {
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev, NT &inner_vi_ak, bool new_v = false) {
         if (new_v) {
-            return line_intersect(r, v, Ar, Av, lambda_prev, true);
+            return line_intersect(r, v, Ar, Av, lambda_prev, inner_vi_ak, true);
         }
 
         NT lamda = 0, min_plus = NT(maxNT);
@@ -425,9 +434,14 @@ public:
 
         for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
 
-            sum2 = (-2.0 * inner_prev) * AA(i, facet_prev);
-
             *Ariter += lambda_prev * (*Aviter);
+            if(!ball_hit) {
+                sum2 = (-2.0 * inner_prev) * AA(i, facet_prev);
+            } else {
+                sum2 = (-2.0 * inner_prev) * ((*Ariter)/inner_ball_norm);
+            }
+
+
 
             *Aviter += sum2;
 
@@ -566,16 +580,28 @@ public:
 
     }
 
-    void compute_reflection(Point &v, const Point &p, const int facet) {
+    //void compute_reflection(Point &v, const Point &p, const int facet) {
 
-        VT a = (-2.0 * inner_vi_ak) * A.row(facet_k);
-        for (int i = 0; i < _d; ++i) v.set_coord(i, v[i] + a(i));
+        //VT a = (-2.0 * inner_vi_ak) * A.row(facet_k);
+        //for (int i = 0; i < _d; ++i) v.set_coord(i, v[i] + a(i));
 
         //VT a = A.row(facet);
         //Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
         //s = ((-2.0 * v.dot(s)) * s);
         //v = s + v;
 
+    //}
+    
+    void compute_reflection(Point &v, const Point &p, const NT &inner_vi_ak, const int &facet) {
+      
+      VT a = (-2.0 * inner_vi_ak) * A.row(facet_k);
+      for (int i = 0; i < _d; ++i) v.set_coord(i, v[i] + a(i));
+      
+      //VT a = A.row(facet);
+      //Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+      //s = ((-2.0 * v.dot(s)) * s);
+      //v = s + v;
+      
     }
 
     void free_them_all() {}

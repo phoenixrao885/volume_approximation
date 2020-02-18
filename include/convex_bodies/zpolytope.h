@@ -178,6 +178,10 @@ public:
         return true;
     }
 
+    void hit_ball(const bool &hb) {}
+
+    void inner_normal_norm(const NT &in_b) {}
+
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
     void init(const unsigned int dim, const MT &_V, const VT &_b) {
         _d = dim;
@@ -295,27 +299,27 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+            const std::vector<NT> &Av, const NT &fake) {
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda_prev) {
+                                    const std::vector<NT> &Av, const NT &lambda_prev, const NT &fake) {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av) {
+                                               const std::vector<NT> &Av, const NT &inner_vi_ak) {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev, bool new_v = false) {
-        return line_positive_intersect(r, v, Ar, Av);
+            const std::vector<NT> &Av, const NT &lambda_prev, const NT &inner_vi_ak, bool new_v = false) {
+        return line_positive_intersect(r, v, Ar, Av, inner_vi_ak);
     }
 
 
@@ -375,7 +379,7 @@ public:
 
     void normalize() {}
 
-    void compute_reflection(Point &v, const Point &p, const int &facet) {
+    void compute_reflection(Point &v, const Point &p, const NT &inner_vi_ak, const int &facet) {
 
         int count = 0;
         MT Fmat(_d-1,_d);
