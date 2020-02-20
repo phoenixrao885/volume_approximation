@@ -19,7 +19,7 @@ private:
 public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
-    NT vp, psq;
+    NT psq;
 
     BallIntersectPolytope() {}
 
@@ -58,23 +58,24 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, NT &inner_vi_ak) {
-        std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av, inner_vi_ak);
-        std::pair <NT, NT> ballpair = B.line_intersect(r, v);
-        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
-                                 std::max(polypair.second, ballpair.second));
-    }
+    //std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
+    //        VT &Av, NT &inner_vi_ak) {
+    //    std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av, inner_vi_ak);
+    //    std::pair <NT, NT> ballpair = B.line_intersect(r, v);
+    //    return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
+    //                             std::max(polypair.second, ballpair.second));
+    //}
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev, NT &fake) {
+    //std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar, VT &Av, NT &lambda_prev, NT &inner_vi_ak) {
 
-        std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av, lambda_prev, psq);
-        std::pair <NT, NT> ballpair = B.line_intersect(r, v);
-        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
-                                 std::max(polypair.second, ballpair.second));
-    }
+//        std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av, lambda_prev);
+ //       std::pair <NT, NT> ballpair = B.line_intersect(r, v);
+//        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
+//                                 std::max(polypair.second, ballpair.second));
+//    }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av,
+    template <typename VT>
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, VT &Ar, VT &Av,
             NT &inner_vi_ak) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, inner_vi_ak);
@@ -91,8 +92,8 @@ public:
         return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
 
-
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av,
+    template <typename VT>
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, VT &Ar, VT &Av,
                                               NT &lambda_prev, NT &inner_vi_ak, bool new_v = false) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev, inner_vi_ak, new_v);

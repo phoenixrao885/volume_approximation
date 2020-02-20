@@ -6,8 +6,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef POINT_H
-#define POINT_H
+#ifndef TEST_POINT_H
+#define TEST_POINT_H
 
 #include <iostream>
 //#include "../external/Eigen/Eigen"
