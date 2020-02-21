@@ -30,7 +30,7 @@ public:
           NT diameter,
           RNG &rng,
           boost::random::uniform_real_distribution<> urdist,
-          boost::random::uniform_real_distribution<> urdist1,
+          boost::normal_distribution<> urdist1,
           NT delta,
           bool verbose,
           bool rand_only,
@@ -59,8 +59,8 @@ public:
     NT che_rad;
     NT diameter;
     RNG &rng;
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1;
+    boost::random::uniform_real_distribution<> urdist;
+    boost::normal_distribution<> urdist1;
     NT delta;
     bool verbose;
     bool rand_only;

@@ -53,6 +53,7 @@ NT test_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::
     // Move the chebychev center to the origin and apply the same shifting to the polytope
     P.shift(c.getCoefficients());
     P.normalize();
+    P.recompute_AA();
     VT vec;
     vec.setZero(n);
 
@@ -63,7 +64,7 @@ NT test_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::
     var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
-    std::cout<<"rad of B_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
+    //std::cout<<"rad of B_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
 
     int mm = BallSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
@@ -73,7 +74,7 @@ NT test_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::
             true, (*(BallSet.end() - 1)).radius()) :
            test_esti_ratio_interval<RNGType, Point>(*(BallSet.end() - 1), P, *(ratios.end() - 1), er0, win_len, 1200, prob,
                                                vec, var, true, (*(BallSet.end() - 1)).radius());
-    std::cout<<"vol = "<<vol <<std::endl;
+    //std::cout<<"vol = "<<vol <<std::endl;
 
     PolyBall Pb;
     typename std::vector<ball>::iterator balliter = BallSet.begin();
@@ -90,11 +91,11 @@ NT test_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::
         vol *= (!window2) ? 1 / test_esti_ratio_interval<RNGType, Point>(Pb, *(balliter + 1), *(ratioiter + 1), er1,
                 win_len, N * nu, prob, vec, var) : 1 / test_esti_ratio<RNGType, Point>(Pb, *balliter, *ratioiter, er1,
                                                                              win_len, N * nu, var);
-        std::cout<<"vol = "<<vol <<std::endl;
+        //std::cout<<"vol = "<<vol <<std::endl;
     }
 
     P.free_them_all();
-    std::cout<<"vol = "<<vol <<std::endl;
+    //std::cout<<"vol = "<<vol <<std::endl;
     return vol * round_value;
 
 }

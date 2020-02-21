@@ -46,27 +46,9 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen) {
 #' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 #'
 #' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
-#' @examples
-#' # uniform distribution from the 3d unit cube in V-representation using ball walk
-#' P = gen_cube(3, 'V')
-#' points = sample_points(P, random_walk = "BaW", walk_length = 5)
-#'
-#' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
-#' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-#' b = c(0,0,1)
-#' P = Hpolytope$new(A,b)
-#' points = sample_points(P, distribution = "gaussian", parameters = list("variance" = 2))
-#'
-#' # uniform points from the boundary of a 10-dimensional hypersphere
-#' points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
-#'
-#' # 10000 uniform points from a 2-d arbitrary simplex
-#' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
-#' P = Vpolytope$new(V)
-#' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, random_walk = NULL, walk_length = NULL, exact = NULL, body = NULL, parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, random_walk, walk_length, exact, body, parameters, InnerPoint)
+test_sample <- function(P = NULL, N = NULL, random_walk = NULL, walk_length = NULL, parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_test_sample`, P, N, random_walk, walk_length, parameters, InnerPoint)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)

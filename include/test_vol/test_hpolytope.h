@@ -152,6 +152,9 @@ public:
     void inner_normal_norm(NT in_b) {
         inner_ball_norm = in_b;
     }
+    void recompute_AA() {
+        AA.noalias() = A * A.transpose();
+    }
 
     void comp_diam(NT &diam, const NT &cheb_rad) {
         if(cheb_rad < 0.0) {
@@ -164,8 +167,9 @@ public:
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
         _d = dim;
         A = _A;
-        AA = A * A.transpose();
+        AA.noalias() = A * A.transpose();
         b = _b;
+        //std::cout<<AA<<std::endl;
     }
 
     //define matrix A and vector b, s.t. Ax<=b and the dimension

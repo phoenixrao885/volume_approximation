@@ -11,13 +11,14 @@
 #define TEST_RANDOM_SAMPLERS_H
 
 //Eigen::EigenMultivariateNormal<double> normX_solver1(0.0, 1.0);
-boost::normal_distribution<> nrdist(0,1);
+
 
 // Pick a random direction as a normilized vector
 template <typename RNGType, typename Point, typename NT, typename VT, typename parameters>
 Point test_get_direction(const unsigned int dim, VT &vec, parameters &var) {
 
     //boost::normal_distribution<> rdist(0,1);
+    boost::normal_distribution<> nrdist = var.urdist1;//(0,1);
     RNGType &rng = var.rng;
     //boost::random::uniform_real_distribution<> rdist = var.rdist;
     //std::vector<NT> Xs(dim,0);
@@ -145,29 +146,6 @@ void test_uniform_next_point(Polytope &P,
 
 }
 
-// ----- HIT AND RUN FUNCTIONS ------------ //
-/*
-//hit-and-run with random directions and update
-template <typename Polytope, typename Point, typename Parameters>
-void hit_and_run(Point &p,
-                Polytope &P,
-                Parameters const& var) {
-    typedef typename Parameters::RNGType RNGType;
-    typedef typename Point::FT NT;
-    unsigned int n = P.dimension();
-    RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist(0, 1);
-
-    Point v = get_direction<RNGType, Point, NT>(n);
-    std::pair <NT, NT> bpair = P.line_intersect(p, v);
-    //NT lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-    p = (( urdist(rng) * (bpair.first - bpair.second) + bpair.second) * v) + p;
-
-}*/
-
-
-
-
 template <class ConvexBody, class Point, class Parameters, typename NT, typename VT>
 void test_billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT &lambda_prev,
                    Parameters &var, VT &vec, bool first = false) {
@@ -178,51 +156,47 @@ void test_billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT
     boost::random::uniform_real_distribution<> urdist = var.urdist;
     NT T = urdist(rng) * diameter, inner_vi_ak;
     const NT dl = 0.995;
-    //VT vec;
     vec.setZero(n);
     Point v = test_get_direction<RNGType, Point, NT>(n, vec, var), p0 = p;
     int it = 0;
 
     if (first) {
-
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, inner_vi_ak);
         if (T <= pbpair.first) {
-            p = (T * v) + p;
+            p += (T * v);
             lambda_prev = T;
             return;
         }
         lambda_prev = dl * pbpair.first;
-        p = (lambda_prev * v) + p;
+        p += (lambda_prev * v);
         T -= lambda_prev;
         P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
         it++;
     } else {
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, inner_vi_ak, true);
         if (T <= pbpair.first) {
-            p = (T * v) + p;
+            p += (T * v);
             lambda_prev = T;
             return;
         }
 
         lambda_prev = dl * pbpair.first;
-        p = (lambda_prev * v) + p;
-        std::cout<<"is_in = "<<P.is_in(p)<<std::endl;
+        p += (lambda_prev * v);
         T -= lambda_prev;
         P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
         it++;
     }
 
     while (it<10*n) {
-
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev, inner_vi_ak);
         if (T <= pbpair.first) {
-            p = (T * v) + p;
+            p += (T * v);
             lambda_prev = T;
             break;
         }
 
-        lambda_prev = 0.99 * pbpair.first;
-        p = (lambda_prev * v) + p;
+        lambda_prev = dl * pbpair.first;
+        p += (lambda_prev * v);
         T -= lambda_prev;
         P.compute_reflection(v, p, inner_vi_ak, pbpair.second);
 

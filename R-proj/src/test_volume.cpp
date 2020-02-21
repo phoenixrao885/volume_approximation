@@ -54,8 +54,8 @@ double test_generic_volume(Polytope& P, unsigned int walk_step, double e,
     // the random engine with this seed
     typedef boost::mt19937 RNGType;
     RNGType rng(seed);
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1(-1, 1);
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    boost::normal_distribution<> urdist1(0, 1);
 
     std::pair <Point, NT> InnerB;
 

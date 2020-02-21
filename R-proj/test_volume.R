@@ -1,6 +1,6 @@
 library(volesti)
 
-P = gen_cube(10,'H')
+P = gen_cube(100,'H')
 
 tim = system.time({ vol = test_volume(P) })
 
