@@ -77,6 +77,7 @@ double test_generic_volume(Polytope& P, unsigned int walk_step, double e,
     //set parameters for billiard and ball walk
     if (billiard && diam < 0.0) {
         P.comp_diam(diam, InnerB.second);
+        //diam *= 8.0;
     }
 
     // initialization

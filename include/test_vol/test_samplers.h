@@ -203,7 +203,10 @@ void test_billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT
         it++;
     }
 
-    if(it == 10*n) p = p0;
+    if(it == 10*n){
+        std::cout<<"limit reached"<<std::endl;
+        p = p0;
+    }
 }
 
 
